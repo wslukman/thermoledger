@@ -666,6 +666,47 @@
             overflow-y: auto;
             white-space: pre-wrap;
         }
+
+        /* Scrollbar for vault balances */
+        #vault-balances {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        /* Tab Switcher Styling */
+        .tab-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: bold;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .tab-btn.active {
+            color: var(--secondary);
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -703,12 +744,17 @@
             </div>
         </header>
 
-        <!-- Main Workspace -->
-        <div class="workspace">
+        <!-- Tab Bar Switcher -->
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-btn-explorer">🌐 Public Explorer</button>
+            <button class="tab-btn" id="tab-btn-developer">🛠️ Developer Console</button>
+        </div>
+
+        <!-- Public Explorer View -->
+        <div class="workspace" id="view-explorer">
             
-            <!-- Column 1: System Health & Physics Disturbances -->
+            <!-- Column 1: System Health & Noise -->
             <div class="left-col">
-                
                 <!-- Health Metrics -->
                 <div class="panel">
                     <div class="panel-header">
@@ -748,35 +794,10 @@
                         Voltage amplitude represents physical microsecond oscillations.
                     </p>
                 </div>
-
-                <!-- Disturbance Controls -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Thermodynamic Controls</h2>
-                    </div>
-                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-                        Inject thermal energy to simulate network anomalies. Exceeding 5.0&deg;C triggers self-healing Cooling-Off lock.
-                    </p>
-                    
-                    <div class="control-group">
-                        <div class="control-label">
-                            <span>Lattice Perturbation Level</span>
-                            <span id="temp-label">0.00 &deg;C</span>
-                        </div>
-                        <input type="range" class="control-slider" id="temp-slider" min="0" max="6" step="0.1" value="0">
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button class="btn btn-outline" id="btn-reset-temp" style="flex: 1;">Reset Temp</button>
-                        <button class="btn" id="btn-trigger-freeze" style="flex: 1; background: linear-gradient(135deg, var(--accent), #991b1b);">Freeze Grid</button>
-                    </div>
-                </div>
-
             </div>
 
             <!-- Column 2: Lattice Spin Grid & Block Explorer -->
             <div class="center-col">
-                
                 <!-- 2D Ising Lattice Grid -->
                 <div class="panel">
                     <div class="panel-header">
@@ -808,12 +829,10 @@
                         <!-- Dynamic blocks list -->
                     </div>
                 </div>
-
             </div>
 
-            <!-- Column 3: DuitLap Cashier, L2 Ponds, Bots -->
+            <!-- Column 3: Vault Balances & Testnet Faucet -->
             <div class="right-col">
-                
                 <!-- Account Balances -->
                 <div class="panel">
                     <div class="panel-header">
@@ -824,6 +843,55 @@
                     </div>
                 </div>
 
+                <!-- Testnet Faucet Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Testnet Faucet (Kran Saldo)</h2>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+                        Dapatkan 10 $DUIT gratis dari kas negara (0x01a2b3) untuk uji coba transaksi sirkuit.
+                    </p>
+                    <div class="form-group">
+                        <label class="form-label">Target Address</label>
+                        <input type="text" class="form-input" id="faucet-recipient" placeholder="0x..." value="0x03a6bc">
+                    </div>
+                    <button class="btn btn-outline" id="btn-request-faucet" style="width: 100%; border-color: var(--secondary); color: var(--secondary);">Minta Saldo Gratis (10 $DUIT)</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Developer Console View -->
+        <div class="workspace" id="view-developer" style="display: none;">
+            
+            <!-- Column 1: Disturbance & Control Settings -->
+            <div class="left-col">
+                <!-- Disturbance Controls -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Thermodynamic Controls</h2>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+                        Inject thermal energy to simulate network anomalies. Exceeding 5.0&deg;C triggers self-healing Cooling-Off lock.
+                    </p>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>Lattice Perturbation Level</span>
+                            <span id="temp-label">0.00 &deg;C</span>
+                        </div>
+                        <input type="range" class="control-slider" id="temp-slider" min="0" max="6" step="0.1" value="0">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-outline" id="btn-reset-temp" style="flex: 1;">Reset Temp</button>
+                        <button class="btn" id="btn-trigger-freeze" style="flex: 1; background: linear-gradient(135deg, var(--accent), #991b1b);">Freeze Grid</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Simulated Cashier Terminal -->
+            <div class="center-col">
                 <!-- Cashier DuitLap Interface -->
                 <div class="panel">
                     <div class="panel-header">
@@ -853,22 +921,10 @@
                         <div class="sdk-console-line info">Client SDK ready. Connect hardware wallet or click Execute Payment.</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Testnet Faucet Panel -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2>Testnet Faucet (Kran Saldo)</h2>
-                    </div>
-                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-                        Dapatkan 10 $DUIT gratis dari kas negara (0x01a2b3) untuk uji coba transaksi sirkuit.
-                    </p>
-                    <div class="form-group">
-                        <label class="form-label">Target Address</label>
-                        <input type="text" class="form-input" id="faucet-recipient" placeholder="0x..." value="0x03a6bc">
-                    </div>
-                    <button class="btn btn-outline" id="btn-request-faucet" style="width: 100%; border-color: var(--secondary); color: var(--secondary);">Minta Saldo Gratis (10 $DUIT)</button>
-                </div>
-
+            <!-- Column 3: L2 Mempool & Arbitrage Competition -->
+            <div class="right-col">
                 <!-- L2 Pond & Bots -->
                 <div class="panel" style="flex: 1;">
                     <div class="panel-header">
@@ -885,7 +941,6 @@
                         <!-- Dynamic bot rows -->
                     </div>
                 </div>
-
             </div>
 
         </div>
@@ -905,5 +960,27 @@
 
     <!-- JS script app -->
     <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnExplorer = document.getElementById("tab-btn-explorer");
+            const btnDeveloper = document.getElementById("tab-btn-developer");
+            const viewExplorer = document.getElementById("view-explorer");
+            const viewDeveloper = document.getElementById("view-developer");
+
+            btnExplorer.addEventListener("click", () => {
+                btnExplorer.classList.add("active");
+                btnDeveloper.classList.remove("active");
+                viewExplorer.style.display = "grid";
+                viewDeveloper.style.display = "none";
+            });
+
+            btnDeveloper.addEventListener("click", () => {
+                btnDeveloper.classList.add("active");
+                btnExplorer.classList.remove("active");
+                viewDeveloper.style.display = "grid";
+                viewExplorer.style.display = "none";
+            });
+        });
+    </script>
 </body>
 </html>
