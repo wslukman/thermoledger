@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duitcard // Dompet Hardware Termodinamika Tanpa Baterai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #080c14;
+            --bg-surface: rgba(15, 23, 42, 0.6);
+            --border-glow: rgba(0, 242, 254, 0.15);
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #05d5a1;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-glow: 0 0 30px rgba(0, 242, 254, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(5, 213, 161, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 10% 80%, rgba(79, 172, 254, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 20px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(8, 12, 20, 0.8);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .btn-launch {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #080c14;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 13px;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+            transition: all 0.3s;
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.35);
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 80px 8%;
+            gap: 40px;
+            flex: 1;
+        }
+
+        .hero-text {
+            flex: 1.2;
+            max-width: 650px;
+        }
+
+        .badge-hero {
+            background: rgba(5, 213, 161, 0.1);
+            border: 1px solid rgba(5, 213, 161, 0.3);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .hero-text h1 {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 36px;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #080c14;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-weight: 800;
+            font-size: 15px;
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(5, 213, 161, 0.25);
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(5, 213, 161, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* Hero Graphic (CSS Card Animation) */
+        .hero-graphic {
+            flex: 0.8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .phone-container {
+            width: 250px;
+            height: 480px;
+            border: 6px solid #1e293b;
+            background: #0f172a;
+            border-radius: 36px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-screen {
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .phone-screen-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .phone-screen-msg {
+            font-size: 12px;
+            color: var(--text-muted);
+            border: 1px dashed rgba(5, 213, 161, 0.3);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(5, 213, 161, 0.05);
+            animation: pulse-border 2s infinite;
+        }
+
+        .duitcard-physics {
+            width: 180px;
+            height: 110px;
+            background: linear-gradient(135deg, #101524 0%, #1e293b 100%);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 12px;
+            position: absolute;
+            top: 140px;
+            right: -20px;
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.3);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transform: rotate(-12deg);
+            animation: float-and-tap 6s infinite ease-in-out;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .card-chip {
+            width: 28px;
+            height: 22px;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            border-radius: 4px;
+        }
+
+        .card-logo {
+            font-weight: 800;
+            font-size: 14px;
+            color: #fff;
+            align-self: flex-end;
+            letter-spacing: 1px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 8px;
+            color: var(--text-muted);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 8%;
+            background: rgba(15, 23, 42, 0.3);
+            border-top: 1px solid var(--border-glow);
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .features-intro {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 50px;
+        }
+
+        .grid-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .card-feature {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: left;
+            transition: all 0.3s;
+        }
+
+        .card-feature:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(5, 213, 161, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .card-feature h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .card-feature p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 80px 8%;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .download h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .download p {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .store-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .store-btn {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s;
+            min-width: 180px;
+            text-align: left;
+        }
+
+        .store-btn:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .store-btn-icon {
+            font-size: 24px;
+        }
+
+        .store-btn-text {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .store-btn-brand {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #06090f;
+            margin-top: auto;
+        }
+
+        .footer-left p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer-right {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* Animations */
+        @keyframes float-and-tap {
+            0% {
+                transform: translate(0, 0) rotate(-12deg);
+                box-shadow: 0 10px 30px rgba(0, 242, 254, 0.1);
+            }
+            40% {
+                transform: translate(-90px, 40px) rotate(-25deg);
+                box-shadow: 0 15px 35px rgba(0, 242, 254, 0.25);
+            }
+            45% {
+                transform: translate(-95px, 60px) scale(0.95) rotate(-30deg);
+                box-shadow: 0 2px 10px rgba(5, 213, 161, 0.4);
+            }
+            50% {
+                transform: translate(-95px, 60px) scale(1) rotate(-30deg);
+                box-shadow: 0 20px 40px rgba(5, 213, 161, 0.3);
+            }
+            55% {
+                transform: translate(-90px, 40px) rotate(-25deg);
+                box-shadow: 0 15px 35px rgba(0, 242, 254, 0.25);
+            }
+            100% {
+                transform: translate(0, 0) rotate(-12deg);
+                box-shadow: 0 10px 30px rgba(0, 242, 254, 0.1);
+            }
+        }
+
+        @keyframes pulse-border {
+            0% {
+                border-color: rgba(5, 213, 161, 0.2);
+            }
+            50% {
+                border-color: rgba(5, 213, 161, 0.7);
+                box-shadow: 0 0 10px rgba(5, 213, 161, 0.15);
+            }
+            100% {
+                border-color: rgba(5, 213, 161, 0.2);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px 8%;
+            }
+            .hero-text {
+                max-width: 100%;
+            }
+            .hero-cta {
+                justify-content: center;
+            }
+            .hero-graphic {
+                margin-top: 40px;
+            }
+            header {
+                padding: 20px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header>
+        <div class="logo-container">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">DUITCARD</span>
+        </div>
+        <nav class="nav-links">
+            <a href="https://thermoledger.com" target="_blank" class="nav-link">Thermoledger L1</a>
+            <a href="https://thermoledger.com/scan.html" target="_blank" class="nav-link">Thermoscan Explorer</a>
+            <a href="https://thermoledger.com/scan.html" target="_blank" class="btn-launch">Buka Web Wallet</a>
+        </nav>
+    </header>
+
+    <!-- Hero Area -->
+    <section class="hero">
+        <div class="hero-text">
+            <span class="badge-hero">HARDWARE WALLET TERMODINAMIKA</span>
+            <h1>Dompet Aset Kripto Tanpa Baterai. Cukup Sekali Tap.</h1>
+            <p>
+                Duitcard adalah kartu NFC fisik revolusioner yang dirancang khusus untuk jaringan Thermoledger. Tanpa perlu diisi ulang dayanya, aman secara fisik dari peretasan internet, dan memproses transaksi secepat kedipan mata.
+            </p>
+            <div class="hero-cta">
+                <a href="#download" class="btn-primary">Unduh Duitcard App</a>
+                <a href="https://thermoledger.com/scan.html" target="_blank" class="btn-secondary">Lihat Explorer Web</a>
+            </div>
+        </div>
+        
+        <div class="hero-graphic">
+            <!-- Simulated smartphone and tapping card -->
+            <div class="phone-container">
+                <div class="phone-screen">
+                    <div class="phone-screen-logo">⚡ DUITC</div>
+                    <div style="font-size:36px; font-weight:900; color:#fff; margin-bottom:8px;">Rp 150,000</div>
+                    <div style="font-size:10px; color:var(--text-muted); margin-bottom:30px;">Address: 0x03a6bc...0a3f</div>
+                    <div class="phone-screen-msg">
+                        Menunggu Tap Kartu...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="duitcard-physics">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="card-chip"></div>
+                    <span style="font-size: 14px;">⚡</span>
+                </div>
+                <div class="card-logo">DUITCARD</div>
+                <div class="card-footer">
+                    <span>L1 STATE ENERGY PROOF</span>
+                    <span>S50 MIFARE</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2>Keunggulan Teknologi Duitcard</h2>
+        <p class="features-intro">Didesain dengan integrasi hardware NFC dan konsensus fisik termodinamika tercanggih.</p>
+        
+        <div class="grid-features">
+            <!-- Card 1 -->
+            <div class="card-feature">
+                <div class="feature-icon">🔋</div>
+                <h3>100% Tanpa Baterai</h3>
+                <p>Kartu memanfaatkan medan induksi elektromagnetik radio frekuensi dari antena NFC HP Anda untuk menyalakan chip memristor secara nirkabel.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="card-feature">
+                <div class="feature-icon">🔒</div>
+                <h3>Keamanan Fisik</h3>
+                <p>Kunci privat Anda tidak disimpan dalam server awan manapun, melainkan dilindungi enkripsi acak berbasis fluktuasi noise termal chip memristor fisik.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="card-feature">
+                <div class="feature-icon">⚡</div>
+                <h3>Tap-to-Pay Instan</h3>
+                <p>Transfer koin digital Anda cukup dengan mendekatkan kartu Duitcard ke smartphone. Tidak perlu mengetik alamat dompet yang rumit.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <h2>Mulai Transaksi Hari Ini</h2>
+        <p>Unduh aplikasi Duitcard Wallet resmi, hubungkan kartu fisik Mifare S50 Anda, dan kelola portofolio kripto $DUIT Anda dalam hitungan detik.</p>
+        
+        <div class="store-buttons">
+            <!-- Play Store -->
+            <a href="#" class="store-btn">
+                <span class="store-btn-icon">🤖</span>
+                <div>
+                    <div class="store-btn-text">Dapatkan di</div>
+                    <div class="store-btn-brand">Google Play</div>
+                </div>
+            </a>
+            <!-- App Store -->
+            <a href="#" class="store-btn">
+                <span class="store-btn-icon">🍎</span>
+                <div>
+                    <div class="store-btn-text">Unduh dari</div>
+                    <div class="store-btn-brand">App Store</div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-left">
+            <p>&copy; 2026 PT Universal Digital Property. Hak Cipta Dilindungi.</p>
+        </div>
+        <div class="footer-right">
+            THERMOLEDGER ECOSYSTEM // L1 NODE COMPLIANT
+        </div>
+    </footer>
+
+</body>
+</html>

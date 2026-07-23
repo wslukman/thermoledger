@@ -359,6 +359,22 @@ async def read_scan():
 async def read_playground():
     return RedirectResponse(url="/playground.html")
 
+# Intercept root page for custom subdomain routing
+@app.get("/", response_class=HTMLResponse)
+async def read_index(request: Request):
+    host = request.headers.get("host", "").lower()
+    if "duitcard" in host:
+        try:
+            with open("static/duitcard.html", "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+        except Exception:
+            pass
+    try:
+        with open("static/index.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Index file not found: {e}")
+
 # Mount frontend directory
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
