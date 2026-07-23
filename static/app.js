@@ -616,6 +616,8 @@ ${txs.length === 0 ? '<em>Alamat ini belum memiliki riwayat transaksi di sirkuit
     const qParam = urlParams.get('q');
     if (qParam) {
         searchInput.value = qParam;
-        executeSearch();
+        setTimeout(() => {
+            searchTrigger.click();
+        }, 300);
     }
 });
