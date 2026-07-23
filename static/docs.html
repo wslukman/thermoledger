@@ -109,62 +109,76 @@
                 padding: 12px 16px !important;
             }
             .nav-logo {
-                font-size: 14px !important;
-                max-width: 220px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .sidebar {
-                display: block !important;
-                position: fixed !important;
-                top: 73px;
-                left: -280px;
-                width: 280px;
-                height: calc(100vh - 73px);
-                z-index: 200;
-                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
-            }
-            .sidebar.active {
-                left: 0 !important;
+                font-size: 15px !important;
             }
             .nav-links {
                 display: none;
             }
+            
+            /* Sticky Bottom Navigation Bar for Mobile */
+            .sidebar {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                top: auto !important;
+                width: 100% !important;
+                height: 60px !important;
+                background: rgba(16, 15, 36, 0.95) !important;
+                backdrop-filter: blur(12px) !important;
+                border-right: none !important;
+                border-top: 1px solid var(--border-glow) !important;
+                padding: 0 16px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                gap: 12px !important;
+                z-index: 1000 !important;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .sidebar::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .sidebar-title {
+                display: none !important;
+            }
+            
             .sidebar-mobile-nav {
-                display: block;
+                display: none !important;
             }
-            .mobile-menu-btn {
-                display: block;
+            
+            .sidebar-menu {
+                display: flex !important;
+                flex-direction: row !important;
+                margin-bottom: 0 !important;
+                gap: 8px !important;
             }
-        }
-
-        /* Mobile Menu Trigger Button */
-        .mobile-menu-btn {
-            display: none;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: var(--font-main);
-            font-size: 13px;
-            font-weight: bold;
-            transition: all 0.25s;
-            outline: none;
-        }
-        .mobile-menu-btn:hover {
-            border-color: var(--secondary);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-mobile-nav {
-            display: none;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            
+            .sidebar-menu li {
+                margin-bottom: 0 !important;
+                display: inline-block !important;
+            }
+            
+            .sidebar-menu a {
+                padding: 8px 14px !important;
+                font-size: 12px !important;
+                white-space: nowrap !important;
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+            
+            .sidebar-menu a.active {
+                background: rgba(34, 211, 238, 0.1) !important;
+                border-color: var(--secondary) !important;
+                color: var(--secondary) !important;
+            }
+            
+            .content {
+                padding-bottom: 80px !important;
+            }
         }
 
         /* Left Sidebar */
@@ -348,13 +362,10 @@
     <!-- Header Navbar -->
     <nav>
         <a href="#" class="nav-logo">THERMOLEDGER // DEVELOPER DOCS</a>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <div class="nav-links">
-                <a href="/" target="_self">Home</a>
-                <a href="/scan" target="_self">Thermoscan</a>
-                <a href="/playground" target="_self">Playground</a>
-            </div>
-            <button id="btn-mobile-menu" class="mobile-menu-btn">☰ Menu</button>
+        <div class="nav-links">
+            <a href="/" target="_self">Home</a>
+            <a href="/scan" target="_self">Thermoscan</a>
+            <a href="/playground" target="_self">Playground</a>
         </div>
     </nav>
 
@@ -609,16 +620,8 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
     </div>
 
     <script>
-        const btnMobileMenu = document.getElementById("btn-mobile-menu");
-        const sidebar = document.getElementById("docs-sidebar");
-
         // Simple client side routing for documentation tabs
         function switchTab(targetId) {
-            // Close mobile sidebar if active
-            if (sidebar && sidebar.classList.contains("active")) {
-                sidebar.classList.remove("active");
-            }
-
             // Update active menu link
             const links = document.querySelectorAll(".sidebar-menu a");
             links.forEach(l => {
@@ -671,23 +674,6 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
         
         // Init TOC
         updateTOC("intro");
-
-        // Mobile Menu Toggle Event Listeners
-        if (btnMobileMenu && sidebar) {
-            btnMobileMenu.addEventListener("click", (e) => {
-                e.stopPropagation();
-                sidebar.classList.toggle("active");
-            });
-
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener("click", (e) => {
-                if (window.innerWidth <= 768 && sidebar.classList.contains("active")) {
-                    if (!sidebar.contains(e.target) && e.target !== btnMobileMenu) {
-                        sidebar.classList.remove("active");
-                    }
-                }
-            });
-        }
     </script>
 </body>
 </html>
