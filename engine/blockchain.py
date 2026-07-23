@@ -14,6 +14,13 @@ class ThermodynamicBlockchain:
     def __init__(self):
         self.chain: List[Dict[str, Any]] = []
         self.l2_pool: List[Dict[str, Any]] = []
+        self.validators = [
+            {"name": "Alpha-Node", "address": "0x0a111a", "status": "online"},
+            {"name": "Beta-Node", "address": "0x0bee1b", "status": "online"},
+            {"name": "Gamma-Node", "address": "0x0cee1c", "status": "online"},
+            {"name": "Delta-Node", "address": "0x0dee1d", "status": "online"},
+            {"name": "Epsilon-Node", "address": "0x0eee1e", "status": "online"}
+        ]
         self.accounts: Dict[str, int] = {
             "0x01a2b3": 100000000000, # Initial treasury: 1,000 DUIT (10^11 Joules)
             "0x02bf1a": 50000000000,  # Cashier Merchant (DuitLap): 500 DUIT
@@ -21,6 +28,9 @@ class ThermodynamicBlockchain:
             "0xBotHarvester": 5000000000, # Arbitrage bot wallet: 50 DUIT
             "0x000000000000000000000000000000000000DEAD": 0 # Absolute Heat Sink (Burn Wallet)
         }
+        for val in self.validators:
+            self.accounts[val["address"]] = 0
+
         self.bots = [
             {"id": "ThermodynamicBot_A", "efficiency_score": 0.95, "wins": 0, "balance_joules": 1000000000},
             {"id": "EntropyHarvester_B", "efficiency_score": 0.92, "wins": 0, "balance_joules": 1000000000},
@@ -48,6 +58,9 @@ class ThermodynamicBlockchain:
             "0xBotHarvester": 5000000000,
             "0x000000000000000000000000000000000000DEAD": 0
         }
+        for val in self.validators:
+            self.accounts[val["address"]] = 0
+
         for bot in self.bots:
             bot["wins"] = 0
             bot["balance_joules"] = 1000000000
@@ -66,7 +79,16 @@ class ThermodynamicBlockchain:
                 self.accounts[recipient] = self.accounts.get(recipient, 0) + amount
                 
             validator = block["validator"]
-            self.accounts[validator] = self.accounts.get(validator, 0) + 1000
+            is_virtual_val = any(v["address"] == validator for v in self.validators)
+            if is_virtual_val:
+                # Proposer gets 0.018 DUIT (1,800,000 Joules)
+                self.accounts[validator] = self.accounts.get(validator, 0) + 1800000
+                # Other 4 signers get 0.008 DUIT (800,000 Joules) each
+                for val in self.validators:
+                    if val["address"] != validator:
+                        self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + 800000
+            else:
+                self.accounts[validator] = self.accounts.get(validator, 0) + 1000
             
             winning_bot = block.get("winning_bot")
             if winning_bot:
@@ -219,10 +241,17 @@ class ThermodynamicBlockchain:
         block_height = len(self.chain)
         settled_entropy = thermal_noise.generate_entropy_salt(32)
         
-        # Thermodynamic reward is printed to the validator
-        validator_address = "0x0" + settled_entropy[-5:]
-        # Mint reward of 1000 Joules to validator
-        self.accounts[validator_address] = self.accounts.get(validator_address, 0) + 1000
+        # Select proposer randomly from virtual validators
+        proposer = random.choice(self.validators)
+        validator_address = proposer["address"]
+        
+        # Distribute Block Reward: 0.05 $DUIT total (5,000,000 Joules)
+        # Proposer gets 0.018 $DUIT (1,800,000 Joules)
+        self.accounts[validator_address] = self.accounts.get(validator_address, 0) + 1800000
+        # Other 4 signers get 0.008 $DUIT (800,000 Joules) each
+        for val in self.validators:
+            if val["address"] != validator_address:
+                self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + 800000
         
         block = {
             "block_height": block_height,

@@ -205,6 +205,18 @@ async def event_stream(request: Request):
                 consensus_lattice.step_metropolis()
 
             # Compile status payload
+            import random
+            validators_info = []
+            for val in thermo_blockchain.validators:
+                simulated_noise = round(random.uniform(0.96, 1.0), 3) if not consensus_lattice.safe_mode_active else 0.0
+                validators_info.append({
+                    "name": val["name"],
+                    "address": val["address"],
+                    "status": "online" if not consensus_lattice.safe_mode_active else "frozen",
+                    "noise": simulated_noise,
+                    "reward_balance": round(thermo_blockchain.accounts.get(val["address"], 0) / 1e8, 4)
+                })
+
             payload = {
                 "lattice": consensus_lattice.grid.tolist(),
                 "temperature": round(consensus_lattice.temperature, 3),
@@ -217,7 +229,8 @@ async def event_stream(request: Request):
                 # Show last 5 blocks to avoid massive JSON payloads
                 "blocks": thermo_blockchain.chain[-5:],
                 "balances": {k: round(v / 1e8, 4) for k, v in thermo_blockchain.accounts.items()},
-                "bots": thermo_blockchain.bots
+                "bots": thermo_blockchain.bots,
+                "validators": validators_info
             }
             
             yield {

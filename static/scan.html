@@ -877,6 +877,19 @@
                     </div>
                 </div>
 
+                <!-- L1 Active Validators & Block Rewards -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>L1 Active Validators & Rewards</h2>
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                        Setiap blok baru (10 detik) membagikan block reward 0.05 $DUIT (0.018 proposer, 0.008 signer) ke node validator aktif.
+                    </p>
+                    <div id="validator-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="text-align: center; padding: 15px; color: var(--text-muted); font-size: 11px;">Menghubungkan ke validator...</div>
+                    </div>
+                </div>
+
                 <!-- Testnet Faucet Panel -->
                 <div class="panel">
                     <div class="panel-header">
@@ -993,7 +1006,7 @@
     </div>
 
     <!-- JS script app -->
-    <script src="app.js?v=1.0.1"></script>
+    <script src="app.js?v=1.0.2"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const btnExplorer = document.getElementById("tab-btn-explorer");

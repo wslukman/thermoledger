@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const vaultBalances = document.getElementById("vault-balances");
     const l2MempoolList = document.getElementById("l2-mempool-list");
     const botStats = document.getElementById("bot-stats");
+    const validatorList = document.getElementById("validator-list");
     
     const sdkConsole = document.getElementById("sdk-console-log");
     const btnSendTx = document.getElementById("btn-send-tx");
@@ -227,6 +228,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Bots Update
             renderBots(data.bots);
+
+            // Validators Update
+            renderValidators(data.validators);
         };
         
         sseSource.onerror = (err) => {
@@ -341,6 +345,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="bot-wins" style="color: var(--green-glow);">${bot.wins} wins</span>
             `;
             botStats.appendChild(row);
+        });
+    }
+
+    // Render Validators
+    function renderValidators(validators) {
+        if (!validators || !validatorList) return;
+        validatorList.innerHTML = "";
+        
+        validators.forEach(val => {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.background = "rgba(0, 0, 0, 0.25)";
+            row.style.padding = "10px 14px";
+            row.style.borderRadius = "8px";
+            row.style.border = "1px solid rgba(255, 255, 255, 0.04)";
+            
+            const dotColor = val.status === "online" ? "var(--accent)" : "#f43f5e";
+            const dotShadow = val.status === "online" ? "rgba(5, 213, 161, 0.6)" : "rgba(244, 63, 94, 0.6)";
+            
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; box-shadow: 0 0 6px ${dotShadow}; display: inline-block;"></span>
+                        ${val.name}
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px;">${val.address}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; font-size: 12px; color: var(--secondary); font-family: var(--font-mono);">${val.reward_balance.toFixed(4)} $DUIT</div>
+                    <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">Entropy: ${val.noise.toFixed(3)}</div>
+                </div>
+            `;
+            validatorList.appendChild(row);
         });
     }
 
