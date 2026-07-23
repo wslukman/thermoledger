@@ -106,8 +106,52 @@
                 grid-template-columns: 1fr;
             }
             .sidebar {
+                display: block !important;
+                position: fixed !important;
+                top: 73px;
+                left: -280px;
+                width: 280px;
+                height: calc(100vh - 73px);
+                z-index: 200;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
+            }
+            .sidebar.active {
+                left: 0 !important;
+            }
+            .nav-links {
                 display: none;
             }
+            .sidebar-mobile-nav {
+                display: block;
+            }
+        }
+
+        /* Mobile Menu Trigger Button */
+        .mobile-menu-btn {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.25s;
+            outline: none;
+        }
+        .mobile-menu-btn:hover {
+            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-mobile-nav {
+            display: none;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         /* Left Sidebar */
@@ -116,8 +160,8 @@
             border-right: 1px solid var(--border-glow);
             padding: 30px 20px;
             position: sticky;
-            top: 60px;
-            height: calc(100vh - 60px);
+            top: 73px;
+            height: calc(100vh - 73px);
             overflow-y: auto;
         }
 
@@ -291,10 +335,13 @@
     <!-- Header Navbar -->
     <nav>
         <a href="#" class="nav-logo">THERMOLEDGER // DEVELOPER DOCS</a>
-        <div class="nav-links">
-            <a href="/" target="_self">Home</a>
-            <a href="/scan" target="_self">Thermoscan</a>
-            <a href="/playground" target="_self">Playground</a>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="nav-links">
+                <a href="/" target="_self">Home</a>
+                <a href="/scan" target="_self">Thermoscan</a>
+                <a href="/playground" target="_self">Playground</a>
+            </div>
+            <button id="btn-mobile-menu" class="mobile-menu-btn">☰ Menu</button>
         </div>
     </nav>
 
@@ -302,7 +349,17 @@
     <div class="layout">
         
         <!-- Left Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="docs-sidebar">
+            <!-- Mobile-only Navigation Links -->
+            <div class="sidebar-mobile-nav">
+                <div class="sidebar-title">Global Navigation</div>
+                <ul class="sidebar-menu">
+                    <li><a href="/" target="_self" style="color: var(--secondary); font-weight: bold;">← Home</a></li>
+                    <li><a href="/scan" target="_self" style="color: var(--secondary); font-weight: bold;">← Thermoscan</a></li>
+                    <li><a href="/playground" target="_self" style="color: var(--secondary); font-weight: bold;">← Playground</a></li>
+                </ul>
+            </div>
+
             <div class="sidebar-title">Getting Started</div>
             <ul class="sidebar-menu">
                 <li><a href="#intro" class="active" onclick="switchTab('intro')">Introduction</a></li>
@@ -539,8 +596,16 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
     </div>
 
     <script>
+        const btnMobileMenu = document.getElementById("btn-mobile-menu");
+        const sidebar = document.getElementById("docs-sidebar");
+
         // Simple client side routing for documentation tabs
         function switchTab(targetId) {
+            // Close mobile sidebar if active
+            if (sidebar && sidebar.classList.contains("active")) {
+                sidebar.classList.remove("active");
+            }
+
             // Update active menu link
             const links = document.querySelectorAll(".sidebar-menu a");
             links.forEach(l => {
@@ -593,6 +658,23 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
         
         // Init TOC
         updateTOC("intro");
+
+        // Mobile Menu Toggle Event Listeners
+        if (btnMobileMenu && sidebar) {
+            btnMobileMenu.addEventListener("click", (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle("active");
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener("click", (e) => {
+                if (window.innerWidth <= 768 && sidebar.classList.contains("active")) {
+                    if (!sidebar.contains(e.target) && e.target !== btnMobileMenu) {
+                        sidebar.classList.remove("active");
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
