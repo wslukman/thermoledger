@@ -610,4 +610,12 @@ ${txs.length === 0 ? '<em>Alamat ini belum memiliki riwayat transaksi di sirkuit
             searchModal.classList.remove("active");
         }
     });
+
+    // Auto-search from URL query parameter ?q=...
+    const urlParams = new URLSearchParams(window.location.search);
+    const qParam = urlParams.get('q');
+    if (qParam) {
+        searchInput.value = qParam;
+        executeSearch();
+    }
 });
