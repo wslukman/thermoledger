@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Docs // Project Renungan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Vanilla CSS - Ethereum Docs Aesthetics */
+        :root {
+            --bg-base: #0a0915;
+            --bg-sidebar: #100f24;
+            --bg-card: rgba(22, 20, 48, 0.45);
+            --border-glow: rgba(147, 51, 234, 0.2);
+            --primary: #c084fc;
+            --secondary: #22d3ee;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-glow: 0 0 25px rgba(192, 132, 252, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        nav {
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        /* Documentation Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 240px;
+            flex: 1;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 240px 1fr;
+            }
+            .toc {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-glow);
+            padding: 30px 20px;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar-menu a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-menu a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .sidebar-menu a.active {
+            color: var(--primary);
+            background: rgba(192, 132, 252, 0.08);
+            font-weight: 600;
+        }
+
+        /* Main Content Panel */
+        .content {
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .content section {
+            display: none;
+        }
+
+        .content section.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-top: 36px;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        strong {
+            color: #fff;
+        }
+
+        /* Alerts */
+        .alert {
+            background: rgba(192, 132, 252, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 24px 0;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        /* Code Blocks styling */
+        code {
+            font-family: var(--font-mono);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--secondary);
+        }
+
+        pre {
+            background: #05040a;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: #e5e7eb;
+            font-size: 13px;
+        }
+
+        /* Right Table of Contents (TOC) */
+        .toc {
+            padding: 30px 20px;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            border-left: 1px solid var(--border-glow);
+        }
+
+        .toc-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .toc-list {
+            list-style: none;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .toc-list li {
+            margin-bottom: 8px;
+        }
+
+        .toc-list a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .toc-list a:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <nav>
+        <a href="#" class="nav-logo">THERMOLEDGER // DEVELOPER DOCS</a>
+        <div class="nav-links">
+            <a href="/" target="_self">Home</a>
+            <a href="/scan" target="_self">Thermoscan</a>
+            <a href="/playground" target="_self">Playground</a>
+        </div>
+    </nav>
+
+    <!-- Document Layout -->
+    <div class="layout">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Getting Started</div>
+            <ul class="sidebar-menu">
+                <li><a href="#intro" class="active" onclick="switchTab('intro')">Introduction</a></li>
+                <li><a href="#architecture" onclick="switchTab('architecture')">Core Architecture</a></li>
+            </ul>
+            
+            <div class="sidebar-title">Core Consensus</div>
+            <ul class="sidebar-menu">
+                <li><a href="#consensus" onclick="switchTab('consensus')">State Energy Proof (SEP)</a></li>
+            </ul>
+
+            <div class="sidebar-title">Developers & SDK</div>
+            <ul class="sidebar-menu">
+                <li><a href="#sdk" onclick="switchTab('sdk')">Client Dart SDK</a></li>
+                <li><a href="#apis" onclick="switchTab('apis')">Core Node APIs</a></li>
+                <li><a href="#harvester" onclick="switchTab('harvester')">The Harvester Interface</a></li>
+            </ul>
+        </aside>
+
+        <!-- Central Reading Area -->
+        <main class="content">
+            
+            <!-- Section 1: Introduction -->
+            <section id="sec-intro" class="active">
+                <h1>Introduction</h1>
+                <p>Selamat datang di dokumentasi resmi pengembang **Thermoledger** (PT Universal Digital Property).</p>
+                <p>Thermoledger adalah sebuah paradigma baru dalam teknologi desentralisasi yang meninggalkan komputasi digital biner tradisional ($0$ dan $1$) yang kaku dan boros energi. Proyek ini mengimplementasikan arsitektur **Thermodynamic / Physics-as-Computation**, di mana validasi konsensus dan perpindahan nilai tidak diatur oleh kode smart contract linear, melainkan oleh pencapaian kesetimbangan entropi fisik alami.</p>
+                
+                <div class="alert">
+                    <div class="alert-title">Core Concept</div>
+                    <p>Dalam ekosistem ini, koin native <strong>$DUIT</strong> dirancang secara hiper-langka (maksimal suplai: 1.000.000 koin) dengan pecahan terkecil bernilai Joule (J), di mana <strong>1 DUIT = 10^8 Joule</strong>.</p>
+                </div>
+                
+                <h2>Mengapa Termodinamika?</h2>
+                <p>Komputer biner saat ini menghabiskan energi yang sangat besar untuk memecahkan puzzle matematika buatan manusia (seperti SHA-256 pada Bitcoin). Renungan membalikkan paradigma ini dengan memanfaatkan hukum fisika alam sebagai penentu konsensus. Dengan menyelaraskan sirkuit analog ke keadaan energi minimum, proses validasi transaksi kami secara teoritis mendekati batas efisiensi energi Landauer (Landauer's Limit).</p>
+            </section>
+
+            <!-- Section 2: Core Architecture -->
+            <section id="sec-architecture">
+                <h1>Core Architecture</h1>
+                <p>Arsitektur Project Renungan dirancang di atas dua lapisan jaringan (Layer 1 & Layer 2) yang diamankan secara langsung oleh hukum termal.</p>
+                
+                <h2>1. Paradoks "Jendela Noise" & Keamanan Termal</h2>
+                <p>Sistem kami menolak konsep keacakan semu (pseudo-random) buatan algoritma biner. Sebagai gantinya, jaringan memanfaatkan <strong>thermal noise</strong> alami dari sirkuit perangkat keras:</p>
+                <ul>
+                    <li><strong>One-Time Pad Alami:</strong> Noise termal bertindak sebagai kunci kriptografi sekali pakai yang berubah setiap milidetik mengikuti fluktuasi entropi atomik perangkat keras.</li>
+                    <li><strong>Imunitas Peretasan:</strong> Untuk memalsukan transaksi, peretas harus memanipulasi hukum fisik entropi lokal pada sirkuit validator pada milidetik yang sama. Transaksi berbahaya otomatis teredam sebagai "distorsi kotor" oleh sirkuit analog.</li>
+                </ul>
+
+                <h2>2. Local Thermodynamic Ponds (Layer 2)</h2>
+                <p>Di Layer 2, transaksi mikro dikumpulkan dalam bentuk **Bukti Matriks Entropi** sebelum dikunci ke Layer 1. Bot arbitrase berkompetisi membangun transaksi mikro yang saling menguntungkan (*cooperative balance*) di dalam kolam lokal tanpa risiko kehilangan biaya energi (tidak ada gas fee wars).</p>
+            </section>
+
+            <!-- Section 3: Consensus Mechanism -->
+            <section id="sec-consensus">
+                <h1>State Energy Proof (SEP)</h1>
+                <p>State Energy Proof (SEP) menggantikan mekanisme konsensus Proof-of-Work (PoW) dan Proof-of-Stake (PoS) konvensional.</p>
+                
+                <h2>Hukum Entropi Jaringan</h2>
+                <p>Konsensus diatur secara ketat oleh hukum termodinamika alam:</p>
+                <pre><code>&Delta;S_universe &gt;= 0</code></pre>
+                <p>Setiap transaksi divalidasi dengan memetakan jalur komputasi analog menuju kesetimbangan energi minimum (**Minimum Energy Path**). Validitas dicapai ketika status sirkuit validator lokal mencapai ekuilibrium termal yang sinkron dengan protokol global global.</p>
+
+                <h2>Time-Lock Fisik: Cooling-Off Period</h2>
+                <p>Jika terjadi anomali atau gangguan internet global massal, sistem tidak memerlukan koordinasi manual manusia (*hard fork*):</p>
+                <ol>
+                    <li>Node akan mendeteksi penurunan sinkronisasi getaran entropi global.</li>
+                    <li>Sistem otomatis masuk ke mode **Membeku (Safe Mode)** secara mandiri, mengunci seluruh status saldo $DUIT.</li>
+                    <li>Sistem kembali **Mencair (Thaw)** secara otomatis begitu sirkuit fisik mendeteksi stabilitas kesetimbangan energi termal jaringan telah pulih.</li>
+                </ol>
+
+                <h2>Kapasitas Blok: Batas Termal vs. Batas Gas</h2>
+                <p>Pada blockchain biner konvensional (seperti Ethereum), kapasitas transaksi per blok dibatasi oleh <strong>Gas Limit</strong> digital (yaitu batas beban komputasi CPU). Di Renungan, kapasitas ini ditentukan oleh <strong>Kapasitas Termal Sirkuit</strong> dan <strong>Toleransi Ekuilibrium Entropi</strong>:</p>
+                <ul>
+                    <li><strong>Kompresi Melalui Cooperative Balance (L2 Pond):</strong> Jika terjadi ribuan transaksi mikro bersamaan, bot arbitrase menggunakan <em>Least Action Principle</em> untuk mengurutkan transaksi agar saling meniadakan (offset). Hal ini meminimalkan putaran magnet fisik (spin flips) pada sirkuit L1, sehingga beban entropinya mendekati nol dan semuanya dapat diselesaikan dalam satu transisi blok L1 yang sama.</li>
+                    <li><strong>Batas Disipasi Termal (Thermal Stress):</strong> Jika transaksi berjalan satu arah secara masif tanpa offset, sirkuit validator akan mengalami stres magnetik tinggi yang menaikkan suhu fisik chip. Jika suhu melewati batas kritis 5.0&deg;C, sistem akan memicu <em>Cooling-Off Period</em> secara alami untuk mendinginkan sirkuit sebelum menerima blok transaksi baru kembali.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4: Client Dart SDK -->
+            <section id="sec-sdk">
+                <h1>Client Dart SDK</h1>
+                <p>Pustaka SDK Dart disediakan untuk diintegrasikan langsung ke dalam ekosistem aplikasi kasir retail Merchant DuitLap dan dompet digital konsumen.</p>
+                
+                <h2>Integrasi Kode Dart</h2>
+                <p>Contoh inisialisasi ekosistem dan eksekusi pembayaran mikro:</p>
+                <pre><code>import 'package:duit_thermo_sdk/duit_thermo_sdk.dart';
+
+void initializeDuitEcosystem() async {
+  // 1. Menginisialisasi koneksi ke node lokal atau jembatan hardware
+  DuitWallet wallet = DuitWallet(nodeUrl: "https://node1.duitscan.io");
+  
+  // 2. Mendeteksi dan mengunci koneksi dengan Hardwallet Dongle USB/NFC
+  bool isHardwareConnected = await wallet.connectHardware();
+  
+  if (isHardwareConnected) {
+    print("Hardwallet Analog Terdeteksi. Keamanan dijamin Hukum Termodinamika.");
+  }
+}
+
+void executeMerchantPayment(String recipientAddress, double amountInDuit) async {
+  // Pecahan otomatis dikonversi ke satuan internal Joule (1 DUIT = 10^8 Joule)
+  int amountInJoule = DuitConverter.toJoule(amountInDuit);
+  
+  try {
+    // Eksekusi transaksi mikro instan melalui enkapsulasi Layer 2
+    var txResult = await DuitWallet.sendMicroTransaction(
+      recipient: recipientAddress,
+      jouleAmount: amountInJoule,
+      authMode: AuthMode.biometricEntropy
+    );
+    
+    print("Transaksi Kasir Sukses. Terkunci di Blok: \${txResult.blockHeight}");
+  } catch (e) {
+    print("Gagal mencapai kesetimbangan energi transaksi: \$e");
+  }
+}</code></pre>
+
+                <h2>Alur Konfirmasi & Integrasi Web3 (Connect & Approve UX)</h2>
+                <p>Ekosistem aplikasi pihak ketiga (dApp) berinteraksi dengan dompet pengguna melalui alur keamanan standar industri yang sangat ketat:</p>
+                <ol style="margin-left: 20px; margin-bottom: 20px; color: var(--text-muted); font-size: 14.5px; line-height: 1.6;">
+                    <li style="margin-bottom: 10px;"><strong>Wallet Handshake:</strong> Pengguna memberikan otorisasi kepada website merchant untuk membaca alamat publik wallet-nya. Website <strong>tidak memiliki akses</strong> untuk memotong saldo secara sepihak.</li>
+                    <li style="margin-bottom: 10px;"><strong>Transaction Proposal:</strong> Ketika ada permintaan pembayaran, aplikasi web mengajukan draf transaksi ke node untuk menangkap parameter termal terupdate (<em>Entropy Salt</em>) melalui API <code>/prepare</code>.</li>
+                    <li style="margin-bottom: 10px;"><strong>Physical Confirmation:</strong> Dompet pengguna mendeteksi pengajuan tersebut dan meminta persetujuan. Pengguna melakukan tindakan fisik autentikasi:
+                        <ul style="margin-left: 20px; margin-top: 5px;">
+                            <li>Melakukan <strong>tap kartu fisik NFC</strong> ke terminal pembaca atau HP.</li>
+                            <li>Menyentuh <strong>sensor sidik jari</strong> atau tombol fisik pada <strong>USB Dongle</strong> yang terpasang.</li>
+                            <li>Melakukan verifikasi PIN/FaceID pada aplikasi Hot Wallet handphone.</li>
+                        </ul>
+                    </li>
+                    <li style="margin-bottom: 10px;"><strong>Physic Sign & Commit:</strong> Modul sirkuit hardware menandatangani bukti energi <em>State Energy Proof</em> (SEP) dan mengirimkannya ke validator via API <code>/commit</code> untuk dicatat permanen dalam blok L1.</li>
+                </ol>
+
+                <h2>Model Keamanan Hardware & Mitigasi Pencurian (Threat Model)</h2>
+                <p>Ekosistem dirancang untuk memitigasi skenario kehilangan atau pencurian perangkat keras fisik (NFC Card atau USB Dongle) melalui skema keamanan berlapis:</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px; color: var(--text-muted); font-size: 14.5px; line-height: 1.6;">
+                    <li style="margin-bottom: 10px;"><strong>Batas Transaksi Tanpa PIN (Velocity Limits):</strong> Transaksi ritel cepat (tap-and-go) dibatasi hanya untuk nilai nominal kecil. Transaksi di atas ambang batas (threshold) mewajibkan input PIN 6-digit pada layar mesin pembaca yang divalidasi secara langsung di dalam chip aman (Secure Element) kartu.</li>
+                    <li style="margin-bottom: 10px;"><strong>2-of-2 Multi-Signature (NFC + Phone App):</strong> Konfigurasi dompet tingkat lanjut membagi kunci privat menjadi dua share terpisah. Tanda tangan konsensus SEP hanya sah jika kartu NFC di-tap DAN aplikasi mobile menyetujui transaksi melalui FaceID/Sidik Jari HP pengguna.</li>
+                    <li style="margin-bottom: 10px;"><strong>Active Biometrics pada USB Dongle:</strong> Khusus perangkat USB Dongle, otentikasi menggunakan sensor sidik jari fisik di atas dongle. Pencurian fisik tanpa sidik jari yang cocok membuat perangkat tidak berguna sama sekali.</li>
+                    <li style="margin-bottom: 10px;"><strong>Emergency Sweep Recovery:</strong> Pengguna dapat mengimpor frasa pemulihan (seed phrase) cadangan mereka pada dompet baru untuk memindahkan (*sweep*) seluruh dana ke alamat baru secara instan, sekaligus mendaftarkan alamat kartu lama yang hilang ke dalam daftar hitam (*blacklist*) node global.</li>
+                </ul>
+
+                <h2>Kondisi Termal Pembukaan Kunci (Thermal Locks & Escrow)</h2>
+                <p>Untuk kebutuhan transaksi bersyarat (smart contract), Thermoledger mendukung skema penguncian koin deklaratif berbasis status termal jaringan dan otorisasi fisik:</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px; color: var(--text-muted); font-size: 14.5px; line-height: 1.6;">
+                    <li style="margin-bottom: 10px;"><strong>Temporal Spin Lock (Time-Lock):</strong> Menangguhkan validasi transisi spin di kisi validator untuk alamat tertentu hingga tinggi blok L1 atau rentang waktu epoch tercapai (berguna untuk vesting atau tabungan berjangka).</li>
+                    <li style="margin-bottom: 10px;"><strong>Threshold Lock (Energy Bound):</strong> Koin terkunci di dalam sirkuit dan hanya dapat dicairkan jika stres termal jaringan ($\Delta H$) berada di bawah batas tertentu (menjamin transaksi diselesaikan saat biaya jaringan termurah).</li>
+                    <li style="margin-bottom: 10px;"><strong>Multi-Card Physical Signatures (Escrow):</strong> Mengunci dana di dompet L1 dan hanya melepaskannya jika menerima gabungan tanda tangan fisik (*State Energy Proof*) dari kartu penjual dan pembeli secara terotentikasi.</li>
+                </ul>
+            </section>
+
+            <!-- Section 5: Core Node APIs -->
+            <section id="sec-apis">
+                <h1>Core Node APIs</h1>
+                <p>Validator Core Node menyediakan antarmuka API HTTP REST berkinerja tinggi untuk berinteraksi dengan sirkuit mesin konsensus.</p>
+                
+                <h2>1. POST /api/v1/transaction/prepare</h2>
+                <p>Menyiapkan draf transaksi dengan menangkap status entropi jaringan paling mutakhir.</p>
+                <p><strong>Request Body:</strong></p>
+                <pre><code>{
+  "sender_public_key": "0x03a6bc...",
+  "recipient": "0x02bf1a...",
+  "amount_joule": 500000
+}</code></pre>
+                <p><strong>Response Body:</strong></p>
+                <pre><code>{
+  "status": "prepared",
+  "entropy_salt": "0x9f8e7d...",
+  "target_energy_state": "0x3c2b1a..."
+}</code></pre>
+
+                <h2>2. POST /api/v1/transaction/commit</h2>
+                <p>Mengirimkan bukti transaksi fisik yang telah ditandatangani oleh perangkat hardware/emulasi pengguna.</p>
+                <p><strong>Request Body:</strong></p>
+                <pre><code>{
+  "signed_energy_proof": "0x8a7b6c...",
+  "transaction_payload": "0x123abc..."
+}</code></pre>
+                <p><strong>Response Body:</strong></p>
+                <pre><code>{
+  "status": "committed",
+  "block_height": 10420,
+  "settled_entropy": "0x0000a1b2..."
+}</code></pre>
+
+                <h2>3. GET /api/v1/network/entropy-health</h2>
+                <p>Mengembalikan indikator performa fisik ekuilibrium jaringan global.</p>
+                <p><strong>Response Body:</strong></p>
+                <pre><code>{
+  "global_entropy_stability": "99.98%",
+  "active_analog_nodes": 4209,
+  "global_power_draw_watts": 841.8,
+  "energy_saved_vs_evm_mwh": 14.2
+}</code></pre>
+
+                <h2>4. POST /api/v1/faucet</h2>
+                <p>Mengirimkan 10 $DUIT (1.000.000.000 Joule) dari dompet Treasury L1 (0x01a2b3) ke alamat tujuan untuk kebutuhan uji coba jaringan testnet.</p>
+                <p><strong>Request Body:</strong></p>
+                <pre><code>{
+  "recipient": "0x03a6bc..."
+}</code></pre>
+                <p><strong>Response Body:</strong></p>
+                <pre><code>{
+  "status": "success",
+  "tx_id": "0xfaucet9f8e7d6c",
+  "amount_duit": 10.0
+}</code></pre>
+            </section>
+
+            <!-- Section 6: The Harvester Interface -->
+            <section id="sec-harvester">
+                <h1>The Harvester Interface</h1>
+                <p>Menyediakan jalur koneksi data tanpa latensi (*low-latency streaming interface*) bagi pengembang bot kuantitatif pihak ketiga.</p>
+                
+                <h2>Kompetisi Bot Arbitrase</h2>
+                <p>Bot bersaing secara mekanis berdasarkan **Prinsip Aksi Terkecil (Least Action Principle)**:</p>
+                <ul>
+                    <li><strong>Minimum Energy Path Optimization:</strong> Mengatur ulang urutan transaksi di mempool L2 agar transisi *spin* sirkuit analog seminimal mungkin. Bot yang menghasilkan "gesekan" termal paling kecil akan dieksekusi lebih awal secara alami oleh sirkuit.</li>
+                    <li><strong>Noise Prediction:</strong> Modul AI lokal memperkirakan fluktuasi sirkuit termal validator untuk menyelaraskan waktu injeksi transaksi dengan fluktuasi acak yang menguntungkan.</li>
+                </ul>
+            </section>
+
+        </main>
+
+        <!-- Right Table of Contents (TOC) -->
+        <aside class="toc">
+            <div class="toc-title">ON THIS PAGE</div>
+            <ul class="toc-list" id="toc-container">
+                <li><a href="#">Overview</a></li>
+                <li><a href="#">Quick Start</a></li>
+            </ul>
+        </aside>
+
+    </div>
+
+    <script>
+        // Simple client side routing for documentation tabs
+        function switchTab(targetId) {
+            // Update active menu link
+            const links = document.querySelectorAll(".sidebar-menu a");
+            links.forEach(l => {
+                l.classList.remove("active");
+                if (l.getAttribute("href") === "#" + targetId) {
+                    l.classList.add("active");
+                }
+            });
+
+            // Show target section
+            const sections = document.querySelectorAll(".content section");
+            sections.forEach(s => {
+                s.classList.remove("active");
+                if (s.id === "sec-" + targetId) {
+                    s.classList.add("active");
+                }
+            });
+
+            // Update TOC based on content
+            updateTOC(targetId);
+            
+            // Scroll to top of content
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Dynamically update TOC based on headers of the active section
+        function updateTOC(targetId) {
+            const tocContainer = document.getElementById("toc-container");
+            tocContainer.innerHTML = "";
+            
+            const section = document.getElementById("sec-" + targetId);
+            const headers = section.querySelectorAll("h2");
+            
+            if (headers.length === 0) {
+                tocContainer.innerHTML = "<li><a href='#'>Overview</a></li>";
+                return;
+            }
+
+            headers.forEach((h, idx) => {
+                // Add unique id to header if not present
+                if (!h.id) {
+                    h.id = targetId + "-h2-" + idx;
+                }
+                
+                const li = document.createElement("li");
+                li.innerHTML = `<a href="#${h.id}">${h.innerText}</a>`;
+                tocContainer.appendChild(li);
+            });
+        }
+        
+        // Init TOC
+        updateTOC("intro");
+    </script>
+</body>
+</html>

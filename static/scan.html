@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuitScan // Thermodynamic Blockchain Explorer</title>
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Vanilla CSS Design System with Sleek Dark Glassmorphism */
+        :root {
+            --bg-base: #07060f;
+            --bg-surface: rgba(18, 16, 35, 0.65);
+            --border-glow: rgba(147, 51, 234, 0.25);
+            --primary: #c084fc;
+            --secondary: #22d3ee;
+            --accent: #f43f5e;
+            --green-glow: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-glow: 0 0 20px rgba(192, 132, 252, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Header Component */
+        header {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .header-title h1 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            margin-top: 4px;
+        }
+
+        .network-badge-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .supply-badge {
+            background: rgba(192, 132, 252, 0.1);
+            border: 1px solid rgba(192, 132, 252, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .supply-badge span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-family: var(--font-display);
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: var(--green-glow);
+            transition: all 0.5s ease;
+        }
+
+        .status-badge.frozen {
+            color: var(--accent);
+            background: rgba(244, 63, 94, 0.1);
+            border-color: rgba(244, 63, 94, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        /* 3-Column Core Workspace */
+        .workspace {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel Common Styles */
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s;
+        }
+
+        .panel:hover {
+            border-color: rgba(192, 132, 252, 0.4);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .panel-header h2 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-header h2 i {
+            color: var(--primary);
+        }
+
+        /* Left Column: Physics Control & System Health */
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .metric-card-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-card-value {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 4px;
+            color: #fff;
+        }
+
+        .metric-card-value.highlight-cyan {
+            color: var(--secondary);
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+
+        .metric-card-value.highlight-purple {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+        }
+
+        /* Noise Voltage Oscilloscope */
+        .noise-canvas-container {
+            width: 100%;
+            height: 100px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .noise-canvas-container::after {
+            content: 'JENDELA NOISE INTERFACE';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            font-family: var(--font-mono);
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1px;
+        }
+
+        #oscilloscope {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Control Slider panel */
+        .control-group {
+            margin-top: 15px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border: none;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--secondary);
+            background: rgba(34, 211, 238, 0.05);
+            color: var(--secondary);
+        }
+
+        /* Center Column: Lattice & Explorer */
+        .center-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Lattice Visualizer */
+        .lattice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        #lattice-canvas {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1;
+            background: #090812;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .lattice-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Block list styling */
+        .block-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .block-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.2s;
+        }
+
+        .block-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(192, 132, 252, 0.2);
+        }
+
+        .block-card-header {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .block-height {
+            color: var(--secondary);
+        }
+
+        .block-time {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .block-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            margin-top: 10px;
+            color: var(--text-muted);
+        }
+
+        .block-detail-item span {
+            color: #fff;
+        }
+
+        .block-hash {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            word-break: break-all;
+            color: var(--text-muted);
+        }
+
+        /* Right Column: DuitLap Cashier, L2 Ponds, Bots */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Cashier Forms */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .wallet-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .wallet-option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wallet-option.active {
+            border-color: var(--primary);
+            background: rgba(192, 132, 252, 0.08);
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* SDK Console Logging */
+        .sdk-console {
+            background: #05040a;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: #38bdf8;
+            height: 120px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+
+        .sdk-console-line {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+        }
+
+        .sdk-console-line.success {
+            color: var(--green-glow);
+        }
+
+        .sdk-console-line.info {
+            color: #a78bfa;
+        }
+
+        /* L2 Pond Transactions & Bot statistics */
+        .l2-pond-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .l2-pond-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-left: 3px solid var(--secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .l2-empty {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .bot-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .bot-name {
+            font-family: var(--font-mono);
+            color: var(--primary);
+        }
+
+        .bot-wins {
+            font-family: var(--font-display);
+            font-weight: bold;
+        }
+
+        /* Balances widget */
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Scrollbars custom styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* Search Modal Glassmorphism */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 4, 10, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        .modal-close:hover {
+            color: var(--accent);
+        }
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+        .modal-body {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-main);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Header -->
+        <header>
+            <div class="header-title">
+                <h1>THERMOLEDGER // THERMOSCAN</h1>
+                <p>PT UNIVERSAL DIGITAL PROPERTY &bull; THERMOLEDGER ECOSYSTEM &bull; THERMODYNAMIC LEDGER ENGINE</p>
+            </div>
+            
+            <!-- Search Engine Bar -->
+            <div style="flex: 1; max-width: 400px; min-width: 320px; margin: 0 30px; position: relative; flex-shrink: 0;">
+                <input type="text" id="thermoscan-search" placeholder="Cari tinggi blok, hash, atau alamat..." 
+                       style="width: 100%; padding: 10px 16px; border-radius: 20px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-glow); color: #fff; font-family: var(--font-main); font-size: 13px; outline: none; transition: all 0.3s; border-color: rgba(192, 132, 252, 0.3);">
+                <span id="btn-search-trigger" style="position: absolute; right: 16px; top: 11px; color: var(--text-muted); cursor: pointer; font-size: 14px;">🔍</span>
+            </div>
+            
+            <div class="network-badge-container">
+                <a href="/" class="btn btn-outline" style="padding: 8px 16px; font-size: 12px; text-decoration: none; border-radius: 8px; font-family: var(--font-display); width: auto; margin-right: 8px;">Home</a>
+                <a href="/docs" target="_blank" class="btn btn-outline" style="padding: 8px 16px; font-size: 12px; text-decoration: none; border-radius: 8px; font-family: var(--font-display); width: auto; margin-right: 8px;">Dev Docs</a>
+                <a href="/playground" class="btn btn-outline" style="padding: 8px 16px; font-size: 12px; text-decoration: none; border-radius: 8px; font-family: var(--font-display); width: auto; margin-right: 8px;">Playground</a>
+                <div class="supply-badge" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.3); color: var(--accent); margin-right: 8px;">
+                    Burned: <span id="burned-supply-badge">0 $DUIT</span>
+                </div>
+                <div class="supply-badge">
+                    Supply: <span>1,000,000 $DUIT</span>
+                </div>
+                <div class="status-badge" id="network-status-badge">
+                    <span class="dot"></span>
+                    <span id="network-status-text">THERMAL RUNNING</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            
+            <!-- Column 1: System Health & Physics Disturbances -->
+            <div class="left-col">
+                
+                <!-- Health Metrics -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Entropy Health & Performance</h2>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-card-label">Entropy Stability</div>
+                        <div class="metric-card-value highlight-cyan" id="m-stability">99.98%</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-card-label">Active Analog Nodes</div>
+                        <div class="metric-card-value" id="m-nodes">4209</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-card-label">Global Power Draw</div>
+                        <div class="metric-card-value highlight-purple" id="m-power">841.8 Watts</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-card-label">Saved vs EVM Web3</div>
+                        <div class="metric-card-value" id="m-saving">14.242 MWh</div>
+                    </div>
+                </div>
+
+                <!-- Jendela Noise Oscilloscope -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Thermal Noise Oscilloscope</h2>
+                    </div>
+                    <div class="noise-canvas-container">
+                        <canvas id="oscilloscope"></canvas>
+                    </div>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 8px; font-family: var(--font-mono);">
+                        Voltage amplitude represents physical microsecond oscillations.
+                    </p>
+                </div>
+
+                <!-- Disturbance Controls -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Thermodynamic Controls</h2>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+                        Inject thermal energy to simulate network anomalies. Exceeding 5.0&deg;C triggers self-healing Cooling-Off lock.
+                    </p>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>Lattice Perturbation Level</span>
+                            <span id="temp-label">0.00 &deg;C</span>
+                        </div>
+                        <input type="range" class="control-slider" id="temp-slider" min="0" max="6" step="0.1" value="0">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-outline" id="btn-reset-temp" style="flex: 1;">Reset Temp</button>
+                        <button class="btn" id="btn-trigger-freeze" style="flex: 1; background: linear-gradient(135deg, var(--accent), #991b1b);">Freeze Grid</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Column 2: Lattice Spin Grid & Block Explorer -->
+            <div class="center-col">
+                
+                <!-- 2D Ising Lattice Grid -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Validator Lattice Spin State</h2>
+                        <span style="font-size: 11px; font-family: var(--font-mono);" id="lattice-energy-text">H: -256.0</span>
+                    </div>
+                    <div class="lattice-container">
+                        <canvas id="lattice-canvas" width="400" height="400"></canvas>
+                        
+                        <div class="lattice-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--primary); box-shadow: 0 0 8px var(--primary);"></span>
+                                <span>Spin Up (+1)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--secondary); box-shadow: 0 0 8px var(--secondary);"></span>
+                                <span>Spin Down (-1)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- L1 Block Explorer -->
+                <div class="panel" style="flex: 1;">
+                    <div class="panel-header">
+                        <h2>L1 Blocks (Thermoscan)</h2>
+                    </div>
+                    <div class="block-scroll" id="block-explorer-list">
+                        <!-- Dynamic blocks list -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Column 3: DuitLap Cashier, L2 Ponds, Bots -->
+            <div class="right-col">
+                
+                <!-- Account Balances -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Thermodynamic Vault Balances</h2>
+                    </div>
+                    <div id="vault-balances">
+                        <!-- Dynamic vault balances -->
+                    </div>
+                </div>
+
+                <!-- Cashier DuitLap Interface -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>DuitLap Cashier & Wallet</h2>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Recipient Address</label>
+                        <input type="text" class="form-input" id="tx-recipient" value="0x02bf1a">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Amount ($DUIT)</label>
+                        <input type="number" class="form-input" id="tx-amount" value="5.25" step="0.01">
+                    </div>
+                    
+                    <label class="form-label">Client Wallet Interface</label>
+                    <div class="wallet-select">
+                        <div class="wallet-option active" data-mode="hot">Hot Wallet</div>
+                        <div class="wallet-option" data-mode="usb">USB Dongle</div>
+                        <div class="wallet-option" data-mode="nfc">NFC Card</div>
+                    </div>
+                    
+                    <button class="btn" id="btn-send-tx">Execute Payment ($DUIT)</button>
+                    
+                    <div class="sdk-console" id="sdk-console-log">
+                        <div class="sdk-console-line info">Client SDK ready. Connect hardware wallet or click Execute Payment.</div>
+                    </div>
+                </div>
+
+                <!-- Testnet Faucet Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Testnet Faucet (Kran Saldo)</h2>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+                        Dapatkan 10 $DUIT gratis dari kas negara (0x01a2b3) untuk uji coba transaksi sirkuit.
+                    </p>
+                    <div class="form-group">
+                        <label class="form-label">Target Address</label>
+                        <input type="text" class="form-input" id="faucet-recipient" placeholder="0x..." value="0x03a6bc">
+                    </div>
+                    <button class="btn btn-outline" id="btn-request-faucet" style="width: 100%; border-color: var(--secondary); color: var(--secondary);">Minta Saldo Gratis (10 $DUIT)</button>
+                </div>
+
+                <!-- L2 Pond & Bots -->
+                <div class="panel" style="flex: 1;">
+                    <div class="panel-header">
+                        <h2>L2 Thermodynamic Pond (Mempool)</h2>
+                    </div>
+                    <div class="l2-pond-list" id="l2-mempool-list">
+                        <div class="l2-empty">Pond is dry. Send payments to stress-field coordinates.</div>
+                    </div>
+
+                    <div class="panel-header" style="margin-top: 20px;">
+                        <h2>Bot Arbitrage Competition (MEP Harvesting)</h2>
+                    </div>
+                    <div id="bot-stats">
+                        <!-- Dynamic bot rows -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search Result Modal -->
+    <div id="search-modal" class="modal-overlay">
+        <div class="modal-card">
+            <button id="btn-modal-close" class="modal-close">&times;</button>
+            <div class="modal-title" id="search-modal-title">SEARCH RESULT</div>
+            <div class="modal-body" id="search-modal-body">
+                Loading query data...
+            </div>
+        </div>
+    </div>
+
+    <!-- JS script app -->
+    <script src="app.js"></script>
+</body>
+</html>

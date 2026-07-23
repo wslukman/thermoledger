@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermoledger IDE // Remix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS variables matching the dark blue/purple Remix IDE design */
+        :root {
+            --bg-icon-strip: #0e0e18;
+            --bg-sidebar: #1a1a2e;
+            --bg-editor: #0c0b14;
+            --bg-panel-dark: #12111d;
+            --bg-active-tab: #1a1a2e;
+            --bg-inactive-tab: #0e0e18;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: #c084fc;
+            --secondary: #22d3ee;
+            --accent: #f43f5e;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --green-glow: #10b981;
+            --remix-blue: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-editor);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Navbar */
+        nav {
+            background: var(--bg-icon-strip);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .nav-logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-logo span {
+            color: var(--remix-blue);
+        }
+
+        .workspace-selector {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            outline: none;
+            font-family: var(--font-main);
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            margin-left: 6px;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            border-color: var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Main Window Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 1. Left Vertical Icon Strip */
+        .icon-strip {
+            width: 48px;
+            background: var(--bg-icon-strip);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 12px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .strip-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 18px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .strip-btn:hover, .strip-btn.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .strip-btn.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 3px;
+            height: 20px;
+            background: var(--remix-blue);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* 2. Sub-Sidebar Container */
+        .sub-sidebar {
+            width: 250px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-panel {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sidebar-panel.active {
+            display: flex;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+        }
+
+        /* File Explorer Tree styles */
+        .explorer-actions {
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .explorer-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .explorer-btn:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .file-tree {
+            padding: 12px 16px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .tree-folder {
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tree-file {
+            padding-left: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            border-radius: 3px;
+        }
+
+        .tree-file:hover, .tree-file.active {
+            color: var(--secondary);
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Compiler Panel Styles */
+        .compiler-body, .deploy-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .form-select, .form-input {
+            background: var(--bg-panel-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .form-select:focus, .form-input:focus {
+            border-color: var(--remix-blue);
+        }
+
+        .btn-action {
+            background: var(--remix-blue);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        .btn-action.secondary-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-action.secondary-btn:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* 3. Center Workspace Area */
+        .center-workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-editor);
+            overflow: hidden;
+        }
+
+        /* Tab bar */
+        .tab-bar {
+            height: 35px;
+            background: var(--bg-icon-strip);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-inactive-tab);
+            border-right: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+            height: 100%;
+        }
+
+        .tab.active {
+            background: var(--bg-active-tab);
+            color: #fff;
+            border-bottom: 2px solid var(--remix-blue);
+        }
+
+        .tab-close {
+            font-size: 10px;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .tab-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+        }
+
+        /* Editor Content View (Toggle between Home and Editor) */
+        .editor-content-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Main Home tab layout */
+        .home-tab-layout {
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .home-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .home-header h1 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .home-header p {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .quick-start-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .quick-card {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-card:hover {
+            border-color: var(--remix-blue);
+            transform: translateY(-1px);
+        }
+
+        .quick-card-icon {
+            font-size: 24px;
+            color: var(--remix-blue);
+        }
+
+        .quick-card-info h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .quick-card-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Actual Text Code Editor view */
+        .editor-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .editor-view.active {
+            display: flex;
+        }
+
+        .textarea-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .line-numbers {
+            width: 40px;
+            background: rgba(0, 0, 0, 0.15);
+            border-right: 1px solid var(--border-color);
+            padding: 16px 0;
+            text-align: right;
+            padding-right: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: #4b5563;
+            user-select: none;
+            line-height: 1.6;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--green-glow);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            padding: 16px;
+            resize: none;
+            tab-size: 4;
+            white-space: pre;
+        }
+
+        /* Bottom Console Log */
+        .console-panel {
+            height: 160px;
+            background: var(--bg-icon-strip);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .console-header {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            padding: 4px 16px;
+            font-size: 10px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 24px;
+        }
+
+        .console-logs {
+            flex: 1;
+            padding: 8px 16px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .log-time {
+            color: #4b5563;
+        }
+
+        .log-msg {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-msg.info { color: #38bdf8; }
+        .log-msg.success { color: var(--green-glow); }
+        .log-msg.error { color: var(--accent); }
+        .log-msg.system { color: var(--primary-glow); }
+
+        /* 4. Right Sidebar: AI Assistant */
+        .ai-assistant {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .ai-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--primary-glow);
+        }
+
+        .ai-chat-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .chat-bubble {
+            background: var(--bg-panel-dark);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.4;
+        }
+
+        .chat-bubble.ai {
+            border-color: rgba(192, 132, 252, 0.2);
+            background: rgba(192, 132, 252, 0.02);
+        }
+
+        .chat-bubble.user {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: rgba(59, 130, 246, 0.2);
+            align-self: flex-end;
+        }
+
+        .ai-input-group {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-input {
+            flex: 1;
+            background: var(--bg-panel-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .ai-send-btn {
+            background: var(--remix-blue);
+            border: none;
+            color: #fff;
+            padding: 0 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .ai-suggested {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .suggest-tag {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            font-size: 9px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .suggest-tag:hover {
+            color: #fff;
+            border-color: var(--remix-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navbar -->
+    <nav>
+        <div class="nav-logo-group">
+            <a href="/" class="nav-logo"><span>REMIX</span> THERMOLEDGER</a>
+            <select class="workspace-selector">
+                <option>default_workspace</option>
+            </select>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/scan">Thermoscan</a>
+            <a href="/docs">Docs</a>
+        </div>
+    </nav>
+
+    <!-- Main Workspace Frame -->
+    <div class="main-container">
+        
+        <!-- 1. Left Vertical Icon Strip -->
+        <div class="icon-strip">
+            <!-- File Explorer Icon -->
+            <div class="strip-btn active" id="btn-tab-explorer" title="File Explorer">📁</div>
+            <!-- Compiler Icon -->
+            <div class="strip-btn" id="btn-tab-compiler" title="Thermoledger Compiler">⚙️</div>
+            <!-- Deployer Icon -->
+            <div class="strip-btn" id="btn-tab-deploy" title="Deploy & Run Transactions">⚡</div>
+        </div>
+
+        <!-- 2. Sub-Sidebar Container -->
+        <div class="sub-sidebar">
+            
+            <!-- File Explorer Panel -->
+            <div class="sidebar-panel active" id="panel-explorer">
+                <div class="sidebar-title">File Explorer</div>
+                <div class="explorer-actions">
+                    <button class="explorer-btn" id="btn-new-file">+ File</button>
+                    <button class="explorer-btn" id="btn-new-folder">+ Folder</button>
+                </div>
+                <div class="file-tree" id="file-tree-container">
+                    <div class="tree-folder">📂 contracts</div>
+                    <div class="tree-file" data-file="Token.py">📄 Token.py</div>
+                    <div class="tree-file" data-file="Airdrop.py">📄 Airdrop.py</div>
+                    
+                    <div class="tree-folder" style="margin-top: 8px;">📂 scripts</div>
+                    <div class="tree-file" data-file="deploy.py">📄 deploy.py</div>
+                    
+                    <div class="tree-folder" style="margin-top: 8px;">📂 tests</div>
+                    <div class="tree-file" data-file="test_token.py">📄 test_token.py</div>
+                </div>
+            </div>
+
+            <!-- Compiler Panel -->
+            <div class="sidebar-panel" id="panel-compiler">
+                <div class="sidebar-title">Thermoledger Compiler</div>
+                <div class="compiler-body">
+                    <div class="form-group">
+                        <label class="form-label">Compiler Version</label>
+                        <select class="form-select">
+                            <option>v0.1.0-thermal+commit.a9d8c6</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Chain Specification</label>
+                        <select class="form-select">
+                            <option>L1 Ising Lattice (2D Grid)</option>
+                            <option>L2 Thermodynamic Pond</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" id="btn-compile-contract">Compile Contract</button>
+                </div>
+            </div>
+
+            <!-- Deployer Panel -->
+            <div class="sidebar-panel" id="panel-deploy">
+                <div class="sidebar-title">Deploy & Run</div>
+                <div class="deploy-body">
+                    <div class="form-group">
+                        <label class="form-label">Environment</label>
+                        <select class="form-select" id="deploy-env">
+                            <option value="vm">Thermoledger Local VM (Ising)</option>
+                            <option value="testnet">Public Testnet (0x01a2b3)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account</label>
+                        <select class="form-select">
+                            <option>0x03a6bc (100.00 DUIT)</option>
+                            <option>0x04bf9a (2,500.00 DUIT)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Staking Deposit (L1 Gas)</label>
+                        <input type="text" class="form-input" value="50 DUIT" id="deploy-stake" readonly>
+                    </div>
+                    <button class="btn-action" id="btn-deploy-contract">Deploy to Ledger</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. Center Workspace Area -->
+        <div class="center-workspace">
+            
+            <!-- Tabs Bar -->
+            <div class="tab-bar" id="editor-tabs">
+                <div class="tab active" id="tab-home" data-tab-type="home">
+                    <span>🏠 Home</span>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="editor-content-view">
+                
+                <!-- Home Screen Tab -->
+                <div class="home-tab-layout" id="view-home">
+                    <div class="home-header">
+                        <div style="font-size: 32px; color: var(--remix-blue);">🧬</div>
+                        <div>
+                            <h1>THERMOLEDGER REMIX</h1>
+                            <p>Desain, Uji, dan Deploy Smart Contract berbasis Kesetimbangan Termodinamika.</p>
+                        </div>
+                    </div>
+
+                    <div class="quick-start-grid">
+                        <div class="quick-card" onclick="openFile('Token.py')">
+                            <div class="quick-card-icon">🪙</div>
+                            <div class="quick-card-info">
+                                <h3>Buat Token TTS-20</h3>
+                                <p>Gunakan template standardisasi koin dengan pembakaran biaya gesekan otomatis (Friction Burn).</p>
+                            </div>
+                        </div>
+
+                        <div class="quick-card" onclick="openFile('Airdrop.py')">
+                            <div class="quick-card-icon">🪂</div>
+                            <div class="quick-card-info">
+                                <h3>Buat Kontrak Airdrop</h3>
+                                <p>Skrip pengiriman airdrop efisien yang mendistribusikan koin secara gradual tanpa lonjakan temperatur.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Code Editor Screen -->
+                <div class="editor-view" id="view-editor">
+                    <div class="textarea-container">
+                        <div class="line-numbers" id="editor-line-numbers">
+                            1<br>2<br>3<br>4<br>5
+                        </div>
+                        <textarea id="code-textarea" spellcheck="false"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Console -->
+            <div class="console-panel">
+                <div class="console-header">
+                    <span>TERMINAL CONSOLE</span>
+                    <span style="cursor: pointer;" onclick="clearConsole()">Clear</span>
+                </div>
+                <div class="console-logs" id="console-logs-container">
+                    <div class="log-row">
+                        <span class="log-time">[00:00:00]</span>
+                        <span class="log-msg system">Thermoledger IDE initialized. Click file or templates to start coding.</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 4. Right Sidebar: AI Assistant -->
+        <div class="ai-assistant">
+            <div class="ai-header">
+                <span>🤖 Thermoledger AI</span>
+            </div>
+            
+            <div class="ai-chat-area" id="ai-chat-messages">
+                <div class="chat-bubble ai">
+                    Halo! Saya asisten AI Thermoledger. Ada yang bisa saya bantu dalam menyusun aturan termodinamika smart contract Anda hari ini?
+                    <div class="ai-suggested">
+                        <div class="suggest-tag" onclick="askAI('Bagaimana cara membuat token TTS-20?')">Buat Token TTS-20</div>
+                        <div class="suggest-tag" onclick="askAI('Apa itu Least Action Principle?')">Least Action Principle</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-input-group">
+                <input type="text" class="ai-input" id="ai-user-input" placeholder="Tanya asisten AI...">
+                <button class="ai-send-btn" id="btn-send-ai">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- IDE Logic Script -->
+    <script>
+        // Preset File Content Databases
+        const fileContents = {
+            "Token.py": `# TTS-20 Standard Token Creator Contract
+# Mendefinisikan koin deflationary dengan jaminan termal
+
+token = ThermoledgerToken(
+    name="Kopi Token",
+    symbol="KOPI",
+    decimals=8,
+    initial_supply=10000000 # 10 Juta KOPI
+)
+
+# Kunci suplai token agar tidak terjadi inflasi
+token.set_mintable(False)
+token.set_burnable(True)
+
+# Pasang biaya gesekan transaktif sebesar 0.05%
+# Koin otomatis dibakar ke 0x...DEAD tiap transfer
+token.set_transfer_burn_rate(0.0005)
+
+token.deploy()`,
+
+            "Airdrop.py": `# Gradual Airdrop Contract
+# Pengiriman koin ke ratusan wallet tanpa anomali termal
+
+airdrop = ThermoledgerAirdrop(
+    sender="0x03a6bc",
+    amount_per_wallet=100000000 # 1 DUIT
+)
+
+recipients = [
+    "0x04bf9a", "0x05f8ca", "0x06e7ba", "0x07d6ca"
+]
+
+# Jalankan secara gradual (10 wallet per blok) 
+# Mencegah kenaikan suhu sirkuit di atas batas 5.0 C
+airdrop.set_distribution_rate(10)
+airdrop.execute(recipients)`,
+
+            "deploy.py": `# Deployment Script for Thermoledger
+from engine.blockchain import thermo_blockchain
+
+print("Initiating deployment pipeline...")
+# Staking 50 DUIT deposit
+thermo_blockchain.register_l2_contract("0x07a2c3")`,
+
+            "test_token.py": `# Test Suite for Token.py
+def test_friction_burn():
+    # Pastikan transfer memotong 0.05% suplai
+    pass`
+        };
+
+        // Active States
+        let currentFile = null;
+
+        // UI Selectors
+        const tabsContainer = document.getElementById("editor-tabs");
+        const viewHome = document.getElementById("view-home");
+        const viewEditor = document.getElementById("view-editor");
+        const codeTextarea = document.getElementById("code-textarea");
+        const lineNumbers = document.getElementById("editor-line-numbers");
+        const consoleContainer = document.getElementById("console-logs-container");
+
+        // Strip Buttons Tabs
+        const btnTabExplorer = document.getElementById("btn-tab-explorer");
+        const btnTabCompiler = document.getElementById("btn-tab-compiler");
+        const btnTabDeploy = document.getElementById("btn-tab-deploy");
+
+        const panelExplorer = document.getElementById("panel-explorer");
+        const panelCompiler = document.getElementById("panel-compiler");
+        const panelDeploy = document.getElementById("panel-deploy");
+
+        // 1. Icon Strip Panel Switching
+        function deactivateAllPanels() {
+            [btnTabExplorer, btnTabCompiler, btnTabDeploy].forEach(b => b.classList.remove("active"));
+            [panelExplorer, panelCompiler, panelDeploy].forEach(p => p.classList.remove("active"));
+        }
+
+        btnTabExplorer.addEventListener("click", () => {
+            deactivateAllPanels();
+            btnTabExplorer.classList.add("active");
+            panelExplorer.classList.add("active");
+        });
+
+        btnTabCompiler.addEventListener("click", () => {
+            deactivateAllPanels();
+            btnTabCompiler.classList.add("active");
+            panelCompiler.classList.add("active");
+        });
+
+        btnTabDeploy.addEventListener("click", () => {
+            deactivateAllPanels();
+            btnTabDeploy.classList.add("active");
+            panelDeploy.classList.add("active");
+        });
+
+        // 2. File Explorer Navigation
+        document.querySelectorAll(".tree-file").forEach(fileEl => {
+            fileEl.addEventListener("click", () => {
+                const filename = fileEl.getAttribute("data-file");
+                openFile(filename);
+            });
+        });
+
+        // 3. Tab switching & Opening Files
+        function openFile(filename) {
+            currentFile = filename;
+            
+            // Highlight file in tree
+            document.querySelectorAll(".tree-file").forEach(el => {
+                if (el.getAttribute("data-file") === filename) {
+                    el.classList.add("active");
+                } else {
+                    el.classList.remove("active");
+                }
+            });
+
+            // Update Tab Bar
+            tabsContainer.innerHTML = `
+                <div class="tab" id="tab-home" onclick="showHomeScreen()">
+                    <span>🏠 Home</span>
+                </div>
+                <div class="tab active" id="tab-active-file">
+                    <span>📄 ${filename}</span>
+                    <span class="tab-close" onclick="showHomeScreen()">×</span>
+                </div>
+            `;
+
+            // Load Content
+            codeTextarea.value = fileContents[filename] || "";
+            
+            // Update Line Numbers
+            updateLineNumbers();
+
+            // Toggle view
+            viewHome.style.display = "none";
+            viewEditor.classList.add("active");
+
+            printLog(`Opened file ${filename}`, "info");
+        }
+
+        function showHomeScreen() {
+            currentFile = null;
+            
+            // Remove highlight
+            document.querySelectorAll(".tree-file").forEach(el => el.classList.remove("active"));
+
+            // Tab bar Home active
+            tabsContainer.innerHTML = `
+                <div class="tab active" id="tab-home">
+                    <span>🏠 Home</span>
+                </div>
+            `;
+
+            viewHome.style.display = "flex";
+            viewEditor.classList.remove("active");
+        }
+
+        function toggleHomeScreen() {
+            showHomeScreen();
+        }
+
+        function updateLineNumbers() {
+            const lines = codeTextarea.value.split("\n").length;
+            lineNumbers.innerHTML = Array(lines).fill().map((_, idx) => idx + 1).join("<br>");
+        }
+
+        codeTextarea.addEventListener("input", updateLineNumbers);
+
+        // 4. Action buttons - Compile
+        const btnCompile = document.getElementById("btn-compile-contract");
+        btnCompile.addEventListener("click", () => {
+            if (!currentFile) {
+                printLog("Compiler Error: No file open. Open a contract in File Explorer first.", "error");
+                return;
+            }
+
+            printLog(`Compiling ${currentFile} using Thermoledger Compiler v0.1.0...`, "system");
+            
+            setTimeout(() => {
+                printLog("Performing thermodynamic validation check on spins...", "info");
+            }, 500);
+
+            setTimeout(() => {
+                printLog(`Compilation successful! Target contract metadata compiled. Entropy overhead: 0.000342 Joules.`, "success");
+            }, 1200);
+        });
+
+        // 5. Action buttons - Deploy
+        const btnDeploy = document.getElementById("btn-deploy-contract");
+        btnDeploy.addEventListener("click", () => {
+            if (!currentFile) {
+                printLog("Deployment Error: No compiled contract found in memory.", "error");
+                return;
+            }
+
+            const env = document.getElementById("deploy-env").value;
+            const stake = document.getElementById("deploy-stake").value;
+
+            printLog(`Deploying ${currentFile} to environment: ${env}...`, "system");
+            printLog(`Staking collateral required: ${stake}. Locking deposit L1...`, "info");
+
+            setTimeout(() => {
+                printLog("Consensus status: Consensus reached. Staking locked successfully.", "success");
+                printLog(`SUCCESS! Contract deployed at address 0x07a2c3ef4d2b11a91e847c21. Initialized with balance rules.`, "success");
+            }, 1500);
+        });
+
+        // 6. Console Utility Functions
+        function printLog(text, type = "info") {
+            const timeStr = new Date().toLocaleTimeString();
+            const row = document.createElement("div");
+            row.className = "log-row";
+            row.innerHTML = `
+                <span class="log-time">[${timeStr}]</span>
+                <span class="log-msg ${type}">${text}</span>
+            `;
+            consoleContainer.appendChild(row);
+            consoleContainer.scrollTop = consoleContainer.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleContainer.innerHTML = "";
+            printLog("Terminal console cleared.", "system");
+        }
+
+        // 7. AI Chatbot Assistant Integration
+        const btnSendAI = document.getElementById("btn-send-ai");
+        const aiInput = document.getElementById("ai-user-input");
+        const aiChatArea = document.getElementById("ai-chat-messages");
+
+        function askAI(promptText) {
+            aiInput.value = promptText;
+            sendChatMessage();
+        }
+
+        btnSendAI.addEventListener("click", sendChatMessage);
+        aiInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                sendChatMessage();
+            }
+        });
+
+        async function sendChatMessage() {
+            const query = aiInput.value.trim();
+            if (!query) return;
+
+            // Render User Bubble
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-bubble user";
+            userBubble.innerText = query;
+            aiChatArea.appendChild(userBubble);
+            aiInput.value = "";
+            aiChatArea.scrollTop = aiChatArea.scrollHeight;
+
+            try {
+                const response = await fetch("/api/v1/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: query })
+                });
+                
+                if (!response.ok) throw new Error("API call failed");
+                const data = await response.json();
+                
+                const aiBubble = document.createElement("div");
+                aiBubble.className = "chat-bubble ai";
+                
+                // Formatter for code blocks and bold markdown
+                let htmlContent = data.reply
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/`{3}python([\s\S]*?)`{3}/g, '<pre style="background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:8px; font-family:var(--font-mono); font-size:10px; color:#10b981; overflow-x:auto; text-align:left;"><code>$1</code></pre>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                aiBubble.innerHTML = htmlContent;
+                aiChatArea.appendChild(aiBubble);
+                aiChatArea.scrollTop = aiChatArea.scrollHeight;
+            } catch (err) {
+                const aiBubble = document.createElement("div");
+                aiBubble.className = "chat-bubble ai";
+                aiBubble.style.borderColor = "var(--accent)";
+                aiBubble.innerText = "Error: Tidak dapat terhubung ke asisten AI backend.";
+                aiChatArea.appendChild(aiBubble);
+                aiChatArea.scrollTop = aiChatArea.scrollHeight;
+            }
+        }
+
+        // Add folder action mock
+        document.getElementById("btn-new-file").addEventListener("click", () => {
+            const filename = prompt("Enter filename (e.g. MyContract.py):");
+            if (filename) {
+                if (!filename.endsWith(".py")) {
+                    alert("Only python files (.py) are supported in this test sandbox.");
+                    return;
+                }
+                fileContents[filename] = `# New Thermoledger contract ${filename}\n\n`;
+                
+                // Add to tree
+                const fileTree = document.getElementById("file-tree-container");
+                const newFileEl = document.createElement("div");
+                newFileEl.className = "tree-file";
+                newFileEl.setAttribute("data-file", filename);
+                newFileEl.innerHTML = `📄 ${filename}`;
+                newFileEl.addEventListener("click", () => openFile(filename));
+                fileTree.appendChild(newFileEl);
+                
+                openFile(filename);
+            }
+        });
+    </script>
+
+</body>
+</html>

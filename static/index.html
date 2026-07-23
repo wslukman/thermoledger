@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermoledger // Thermodynamic Blockchain Ecosystem</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Vanilla CSS - Ethereum.org Inspired Aesthetics */
+        :root {
+            --bg-base: #06050e;
+            --bg-card: rgba(18, 16, 38, 0.6);
+            --border-glow: rgba(147, 51, 234, 0.2);
+            --primary: #c084fc;
+            --secondary: #22d3ee;
+            --accent: #f43f5e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-main: 'Inter', sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --shadow-glow: 0 0 30px rgba(192, 132, 252, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 10% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navbar */
+        nav {
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 20px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(6, 5, 14, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 16px 20px;
+            }
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 40px 60px 40px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 20px;
+            }
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 46px;
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: 1px;
+            max-width: 900px;
+            background: linear-gradient(135deg, #ffffff 30%, var(--primary) 70%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+        }
+
+        .hero p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            max-width: 750px;
+            margin-bottom: 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 6px 24px rgba(124, 58, 237, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        /* Stats Grid Section */
+        .stats-bar {
+            background: rgba(16, 15, 34, 0.7);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(12px);
+            border-radius: 100px;
+            padding: 16px 40px;
+            max-width: 1000px;
+            width: calc(100% - 40px);
+            margin: 0 auto 80px auto;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        @media (max-width: 768px) {
+            .stats-bar {
+                border-radius: 20px;
+                padding: 20px;
+            }
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--secondary);
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* Persona Grid (Choose your path) */
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px 100px 40px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 26px;
+            text-align: center;
+            margin-bottom: 50px;
+            letter-spacing: 1px;
+        }
+
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .persona-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .persona-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .persona-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(192, 132, 252, 0.4);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
+        }
+
+        .persona-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+
+        .persona-icon {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .persona-name {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .persona-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            flex: 1;
+        }
+
+        /* Tech Highlights (Feature Cards) */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(34, 211, 238, 0.2);
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-card h3 span {
+            color: var(--secondary);
+        }
+
+        .feature-card p {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            background: #030209;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        footer p {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="#" class="nav-logo">THERMOLEDGER</a>
+        <div class="nav-links">
+            <a href="/scan">Thermoscan</a>
+            <a href="/docs">Developer Docs</a>
+            <a href="/playground">Playground</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1>A Decentralized Ledger Powered by the Laws of Physics</h1>
+        <p>
+            Thermoledger meninggalkan pemrosesan biner statis tradisional demi kesetimbangan termodinamika sirkuit. Sebuah teknologi terdesentralisasi hiper-efisien, hiper-langka, dan diamankan langsung oleh alam.
+        </p>
+        <div class="hero-buttons">
+            <a href="/scan" class="btn btn-primary">Mulai Eksplorasi (Thermoscan)</a>
+            <a href="/docs" class="btn btn-secondary">Dokumentasi Pengembang</a>
+        </div>
+    </div>
+
+    <!-- Live Stats Ticker -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-val" id="stat-nodes">4,209</div>
+            <div class="stat-label">Analog Nodes</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-val" id="stat-supply">1,000,000</div>
+            <div class="stat-label">Max $DUIT Supply</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-val" id="stat-power">841.8 W</div>
+            <div class="stat-label">Global Power Draw</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-val" id="stat-savings">19.085 MWh</div>
+            <div class="stat-label">Saved vs EVM</div>
+        </div>
+    </div>
+
+    <!-- Choose Your Path Section -->
+    <div class="section-container">
+        <h2 class="section-title">Pilih Jalur Anda</h2>
+        
+        <div class="persona-grid">
+            
+            <!-- User Path -->
+            <div class="persona-card">
+                <div class="persona-icon">💳</div>
+                <div class="persona-name">Pengguna Ritel</div>
+                <div class="persona-desc">
+                    Kelola saldo koin hiper-langka $DUIT Anda menggunakan Hot Wallet digital atau Hardwallet keamanan fisik. Belanja di merchant kasir DuitLap hanya dengan melakukan tap kartu NFC.
+                </div>
+                <a href="/scan" class="btn btn-secondary" style="width:100%; text-align:center;">Gunakan $DUIT</a>
+            </div>
+            
+            <!-- Developer Path -->
+            <div class="persona-card">
+                <div class="persona-icon">💻</div>
+                <div class="persona-name">Pengembang (Developer)</div>
+                <div class="persona-desc">
+                    Mulai membangun aplikasi kasir retail atau transaksi mikro di atas kolam L2 bebas biaya gas. Akses client SDK Dart dan API simpul termal fungsional.
+                </div>
+                <a href="/docs" class="btn btn-secondary" style="width:100%; text-align:center;">Mulai Membangun</a>
+            </div>
+            
+            <!-- Validator Path -->
+            <div class="persona-card">
+                <div class="persona-icon">⚡</div>
+                <div class="persona-name">Validator Jaringan</div>
+                <div class="persona-desc">
+                    Operasikan node validator analog-emulated atau hardware mandiri. Berpartisipasi dalam ekuilibrium konsensus L1 dan sewakan kapasitas probabilitas chip untuk simulasi ilmiah.
+                </div>
+                <a href="/scan" class="btn btn-secondary" style="width:100%; text-align:center;">Jalankan Node</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Technology Deep-Dive Section -->
+    <div class="section-container" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 80px;">
+        <h2 class="section-title">Teknologi dari First Principles</h2>
+        
+        <div class="features-grid">
+            
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <h3><span>🔒</span> Keamanan Jendela Noise</h3>
+                <p>
+                    Jaringan memotong keacakan semu digital dengan memanfaatkan fluktuasi thermal noise fisik sirkuit mikroskopis sebagai One-Time Pad acak sekali pakai. Transaksi berbahaya otomatis teredam dan diabaikan secara fisik.
+                </p>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <h3><span>📈</span> Konsensus State Energy Proof</h3>
+                <p>
+                    Menggantikan konsensus balapan hashing PoW. SEP memetakan validasi transaksi ke jalur energi terkecil (Minimum Energy Path) dari kisi spin magnetik validator lokal menuju kesetimbangan ekuilibrium termal global.
+                </p>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <h3><span>💨</span> Transaksi Mikro Tanpa Gas</h3>
+                <p>
+                    Melalui enkapsulasi Layer 2 (Local Thermodynamic Ponds), bot arbitrase saling berkooperasi meminimalkan footprint entropi transaksi. Menghilangkan perang gas fee digital yang mahal dan diskriminatif terhadap modal.
+                </p>
+            </div>
+            
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <h3><span>❄️</span> Cooling-Off (Self-Healing)</h3>
+                <p>
+                    Jika terjadi anomali atau pemutusan jaringan global massal, node validator mendeteksi disorganisasi entropi dan otomatis masuk ke mode beku (safe mode) secara mandiri untuk mengamankan aset, lalu mencair otomatis saat normal.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 PT Universal Digital Property. All rights reserved.</p>
+        <p style="color: var(--text-muted);">Project Code: Thermoledger &bull; Physics-as-Computation Ledger</p>
+    </footer>
+
+    <!-- Live Telemetry Ticker Script -->
+    <script>
+        // Listen to the SSE stream to show live global metrics directly on the homepage
+        function startStatsSSE() {
+            const sse = new EventSource("/api/v1/network/stream");
+            
+            const nodesEl = document.getElementById("stat-nodes");
+            const powerEl = document.getElementById("stat-power");
+            const savingsEl = document.getElementById("stat-savings");
+            
+            sse.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // Update live values on homepage ticker
+                if (data.safe_mode_active) {
+                    nodesEl.innerText = "12 (Failsafe)";
+                    powerEl.innerText = "12.4 W";
+                } else {
+                    nodesEl.innerText = "4,209";
+                    const watts = 800.0 + (100.0 - data.stability) * 4.2;
+                    powerEl.innerText = `${watts.toFixed(1)} W`;
+                }
+                
+                const baseSave = 19.085;
+                const diffTime = (Date.now() / 1000) % 1000;
+                savingsEl.innerText = `${(baseSave + diffTime * 0.005).toFixed(3)} MWh`;
+            };
+            
+            sse.onerror = () => {
+                sse.close();
+                setTimeout(startStatsSSE, 3000);
+            };
+        }
+        startStatsSSE();
+    </script>
+</body>
+</html>
