@@ -245,10 +245,10 @@ class ThermodynamicBlockchain:
         for _ in range(5):
             consensus_lattice.step_metropolis()
             
-        current_lattice_energy = consensus_lattice.get_energy()
+        current_lattice_energy = float(consensus_lattice.get_energy())
         
         # Calculate Delta Entropy (random walk representing natural dissipation)
-        delta_s = (100.0 - consensus_lattice.get_entropy_stability()) / 100.0
+        delta_s = float((100.0 - consensus_lattice.get_entropy_stability()) / 100.0)
         
         # 3. Process transfers
         block_txs = []
@@ -296,14 +296,14 @@ class ThermodynamicBlockchain:
         
         block = {
             "block_height": block_height,
-            "timestamp": time.time(),
+            "timestamp": float(time.time()),
             "transactions": block_txs,
             "settled_entropy": settled_entropy,
-            "lattice_energy_state": round(current_lattice_energy, 4),
-            "delta_entropy": round(delta_s, 6),
+            "lattice_energy_state": float(round(current_lattice_energy, 4)),
+            "delta_entropy": float(round(delta_s, 6)),
             "validator": validator_address,
             "winning_bot": bot_outcome["winning_bot"],
-            "bot_saving_pct": bot_outcome.get("cost_reduction_pct", 0.0)
+            "bot_saving_pct": float(bot_outcome.get("cost_reduction_pct", 0.0))
         }
         
         self.chain.append(block)
