@@ -280,11 +280,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!balances) return;
         vaultBalances.innerHTML = "";
         
-        // Label mapping
         const names = {
             "0x01a2b3": "Treasury Bridge L1",
             "0x02bf1a": "DuitLap Cashier Merchant",
             "0x03a6bc": "Consumer Wallet",
+            "0xDeveloperOps": "Developer Ops Treasury",
             "0xBotHarvester": "Arbitrage Bots Pool",
             "0x000000000000000000000000000000000000DEAD": "Absolute Heat Sink (Burned)"
         };
