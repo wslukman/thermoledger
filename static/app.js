@@ -172,90 +172,103 @@ document.addEventListener("DOMContentLoaded", () => {
         sseSource = new EventSource("/api/v1/network/stream");
         
         sseSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            
-            // Push noise
-            noiseHistory.push(data.voltage);
-            noiseHistory.shift();
-
-            // Draw Lattice Grid
-            drawLattice(data.lattice);
-            
-            // Update labels
-            mStability.innerText = `${data.stability}%`;
-            mStability.className = data.stability > 80 ? "metric-card-value highlight-cyan" : "metric-card-value highlight-purple";
-            
-            latticeEnergyText.innerText = `System Hamiltonian: H = ${data.energy}`;
-            
-            // Network Status Badge
-            if (data.safe_mode_active) {
-                netStatusBadge.className = "status-badge frozen";
-                netStatusText.innerText = "COOLING-OFF (FROZEN)";
-                mNodes.innerText = "12 (Failsafe)";
-                mPower.innerText = "12.4 Watts";
-            } else {
-                netStatusBadge.className = "status-badge";
-                netStatusText.innerText = "THERMAL RUNNING";
-                mNodes.innerText = "4209";
-                
-                // Calculate dynamic wattage
-                const watts = 800.0 + (100.0 - data.stability) * 4.2;
-                mPower.innerText = `${watts.toFixed(1)} Watts`;
-            }
-            
-            // Live energy saving metric
-            const baseSave = 14.242;
-            const diffTime = (Date.now() / 1000) % 1000;
-            mSaving.innerText = `${(baseSave + diffTime * 0.005).toFixed(3)} MWh`;
-
-            // Update Burned Supply Badge
-            if (data.balances) {
-                const burnedVal = data.balances["0x000000000000000000000000000000000000DEAD"] || 0.0;
-                const burnedEl = document.getElementById("burned-supply-badge");
-                if (burnedEl) {
-                    burnedEl.innerText = `${burnedVal.toLocaleString()} $DUIT`;
-                }
-            }
-
-        sseSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 
-                // Update network status
+                // Push noise
                 try {
-                    updateNetworkStatus(data.safe_mode_active, data.temperature);
+                    noiseHistory.push(data.voltage);
+                    noiseHistory.shift();
                 } catch (e) {
-                    console.error("Error updating network status", e);
+                    console.error("Error updating noise history", e);
+                }
+
+                // Draw Lattice Grid
+                try {
+                    drawLattice(data.lattice);
+                } catch (e) {
+                    console.error("Error drawing lattice", e);
                 }
                 
+                // Update labels
+                try {
+                    mStability.innerText = `${data.stability}%`;
+                    mStability.className = data.stability > 80 ? "metric-card-value highlight-cyan" : "metric-card-value highlight-purple";
+                    latticeEnergyText.innerText = `System Hamiltonian: H = ${data.energy}`;
+                } catch (e) {
+                    console.error("Error updating stability labels", e);
+                }
+                
+                // Network Status Badge
+                try {
+                    if (data.safe_mode_active) {
+                        netStatusBadge.className = "status-badge frozen";
+                        netStatusText.innerText = "COOLING-OFF (FROZEN)";
+                        mNodes.innerText = "12 (Failsafe)";
+                        mPower.innerText = "12.4 Watts";
+                    } else {
+                        netStatusBadge.className = "status-badge";
+                        netStatusText.innerText = "THERMAL RUNNING";
+                        mNodes.innerText = "4209";
+                        
+                        // Calculate dynamic wattage
+                        const watts = 800.0 + (100.0 - data.stability) * 4.2;
+                        mPower.innerText = `${watts.toFixed(1)} Watts`;
+                    }
+                } catch (e) {
+                    console.error("Error updating network status badge", e);
+                }
+                
+                // Live energy saving metric
+                try {
+                    const baseSave = 14.242;
+                    const diffTime = (Date.now() / 1000) % 1000;
+                    mSaving.innerText = `${(baseSave + diffTime * 0.005).toFixed(3)} MWh`;
+                } catch (e) {
+                    console.error("Error updating saving metrics", e);
+                }
+
+                // Update Burned Supply Badge
+                try {
+                    if (data.balances) {
+                        const burnedVal = data.balances["0x000000000000000000000000000000000000DEAD"] || 0.0;
+                        const burnedEl = document.getElementById("burned-supply-badge");
+                        if (burnedEl) {
+                            burnedEl.innerText = `${burnedVal.toLocaleString()} $DUIT`;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error updating burned supply badge", e);
+                }
+
                 // L1 Blocks Update
                 try {
                     renderBlocks(data.blocks);
                 } catch (e) {
-                    console.error("Error rendering blocks", e);
+                    console.error("Error rendering L1 blocks", e);
                 }
-    
+
                 // Balances Update
                 try {
                     renderBalances(data.balances);
                 } catch (e) {
                     console.error("Error rendering balances", e);
                 }
-    
+
                 // L2 Mempool Update
                 try {
                     renderMempool(data.l2_pool);
                 } catch (e) {
-                    console.error("Error rendering mempool", e);
+                    console.error("Error rendering L2 pool", e);
                 }
-    
+
                 // Bots Update
                 try {
                     renderBots(data.bots);
                 } catch (e) {
                     console.error("Error rendering bots", e);
                 }
-    
+
                 // Validators Update
                 try {
                     renderValidators(data.validators);
