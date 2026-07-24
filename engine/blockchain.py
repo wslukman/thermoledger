@@ -22,9 +22,10 @@ class ThermodynamicBlockchain:
             {"name": "Epsilon-Node", "address": "0x0eee1e", "status": "online"}
         ]
         self.accounts: Dict[str, int] = {
-            "0x01a2b3": 100000000000, # Initial treasury: 1,000 DUIT (10^11 Joules)
-            "0x02bf1a": 50000000000,  # Cashier Merchant (DuitLap): 500 DUIT
-            "0x03a6bc": 10000000000,   # Consumer wallet: 100 DUIT
+            "0x01a2b3": 1000000000000, # Initial treasury: 10,000 DUIT (10^12 Joules)
+            "0x02bf1a": 50000000000,   # Cashier Merchant (DuitLap): 500 DUIT
+            "0x03a6bc": 10000000000,    # Consumer wallet: 100 DUIT
+            "0xDeveloperOps": 50000000000000, # 5% Genesis Allocation: 500,000 DUIT (5 * 10^13 Joules)
             "0xBotHarvester": 5000000000, # Arbitrage bot wallet: 50 DUIT
             "0x000000000000000000000000000000000000DEAD": 0 # Absolute Heat Sink (Burn Wallet)
         }
@@ -49,12 +50,22 @@ class ThermodynamicBlockchain:
             # Create Genesis Block
             self.create_genesis_block()
  
+    def get_current_block_reward(self, block_height: int) -> int:
+        """Calculates block reward with 4-year halving decay (halves every 12,622,780 blocks)"""
+        if block_height == 0:
+            return 0
+        halving_epoch = block_height // 12622780
+        # Initial reward: 39,610,925 Joules (0.39610925 DUIT)
+        reward = 39610925 >> halving_epoch
+        return reward
+
     def reconstruct_state_from_chain(self):
         """Rebuilds balances and bot wins from loaded database block history"""
         self.accounts = {
-            "0x01a2b3": 100000000000,
+            "0x01a2b3": 1000000000000,
             "0x02bf1a": 50000000000,
             "0x03a6bc": 10000000000,
+            "0xDeveloperOps": 50000000000000,
             "0xBotHarvester": 5000000000,
             "0x000000000000000000000000000000000000DEAD": 0
         }
@@ -79,16 +90,18 @@ class ThermodynamicBlockchain:
                 self.accounts[recipient] = self.accounts.get(recipient, 0) + amount
                 
             validator = block["validator"]
-            is_virtual_val = any(v["address"] == validator for v in self.validators)
-            if is_virtual_val:
-                # Proposer gets 0.018 DUIT (1,800,000 Joules)
-                self.accounts[validator] = self.accounts.get(validator, 0) + 1800000
-                # Other 4 signers get 0.008 DUIT (800,000 Joules) each
-                for val in self.validators:
-                    if val["address"] != validator:
-                        self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + 800000
-            else:
-                self.accounts[validator] = self.accounts.get(validator, 0) + 1000
+            block_reward = self.get_current_block_reward(h)
+            if block_reward > 0:
+                is_virtual_val = any(v["address"] == validator for v in self.validators)
+                if is_virtual_val:
+                    proposer_reward = int(block_reward * 0.36)
+                    signer_reward = (block_reward - proposer_reward) // 4
+                    self.accounts[validator] = self.accounts.get(validator, 0) + proposer_reward
+                    for val in self.validators:
+                        if val["address"] != validator:
+                            self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + signer_reward
+                else:
+                    self.accounts[validator] = self.accounts.get(validator, 0) + block_reward
             
             winning_bot = block.get("winning_bot")
             if winning_bot:
@@ -245,13 +258,16 @@ class ThermodynamicBlockchain:
         proposer = random.choice(self.validators)
         validator_address = proposer["address"]
         
-        # Distribute Block Reward: 0.05 $DUIT total (5,000,000 Joules)
-        # Proposer gets 0.018 $DUIT (1,800,000 Joules)
-        self.accounts[validator_address] = self.accounts.get(validator_address, 0) + 1800000
-        # Other 4 signers get 0.008 $DUIT (800,000 Joules) each
-        for val in self.validators:
-            if val["address"] != validator_address:
-                self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + 800000
+        # Distribute Block Reward dynamically (decays every 4 years)
+        block_reward = self.get_current_block_reward(block_height)
+        if block_reward > 0:
+            proposer_reward = int(block_reward * 0.36)
+            signer_reward = (block_reward - proposer_reward) // 4
+            
+            self.accounts[validator_address] = self.accounts.get(validator_address, 0) + proposer_reward
+            for val in self.validators:
+                if val["address"] != validator_address:
+                    self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + signer_reward
         
         block = {
             "block_height": block_height,
