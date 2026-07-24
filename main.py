@@ -411,13 +411,14 @@ async def register_validator_api(data: Dict[str, Any]):
     name = data.get("name")
     stake_amount_duit = data.get("stake_amount_duit")
     tier_type = data.get("tier_type", "Tipe_A")
+    consensus_pubkey = data.get("consensus_pubkey")
     
     if not address or not name or not stake_amount_duit:
         raise HTTPException(status_code=400, detail="Missing required parameters: address, name, stake_amount_duit")
         
     try:
         stake_amount_joules = int(float(stake_amount_duit) * 1e8)
-        res = thermo_blockchain.register_validator(address, name, stake_amount_joules, tier_type)
+        res = thermo_blockchain.register_validator(address, name, stake_amount_joules, tier_type, consensus_pubkey)
         return res
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -430,6 +431,48 @@ async def unregister_validator_api(data: Dict[str, Any]):
         
     try:
         res = thermo_blockchain.unregister_validator(address)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/v1/kms/sign")
+async def kms_sign_hash(data: Dict[str, Any]):
+    """
+    Mock Google Cloud KMS HSM block signing endpoint.
+    Expects: { "key_name": str, "block_hash": str }
+    Returns: { "signature": str }
+    """
+    key_name = data.get("key_name")
+    block_hash = data.get("block_hash")
+    
+    if not key_name or not block_hash:
+        raise HTTPException(status_code=400, detail="Missing parameters: key_name, block_hash")
+        
+    # Standard signature simulation: sig_<key_name>_<block_hash>
+    signature = f"sig_{key_name}_{block_hash}"
+    return {
+        "status": "success",
+        "key_name": key_name,
+        "block_hash": block_hash,
+        "signature": signature
+    }
+
+@app.post("/api/v1/dex/swap")
+async def execute_dex_swap_api(data: Dict[str, Any]):
+    """
+    Executes a swap transaction from a DEX Pool to a user (payout of DUIT).
+    Expects: { "pool_address": str, "recipient": str, "amount_duit": float }
+    """
+    pool_address = data.get("pool_address")
+    recipient = data.get("recipient")
+    amount_duit = data.get("amount_duit")
+    
+    if not pool_address or not recipient or amount_duit is None:
+        raise HTTPException(status_code=400, detail="Missing required parameters: pool_address, recipient, amount_duit")
+        
+    try:
+        amount_joules = int(float(amount_duit) * 1e8)
+        res = thermo_blockchain.execute_dex_payout(pool_address, recipient, amount_joules)
         return res
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

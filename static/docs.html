@@ -388,6 +388,7 @@
             <ul class="sidebar-menu">
                 <li><a href="#intro" class="active" onclick="switchTab('intro')">Introduction</a></li>
                 <li><a href="#architecture" onclick="switchTab('architecture')">Core Architecture</a></li>
+                <li><a href="#glossary" onclick="switchTab('glossary')">Glossary</a></li>
             </ul>
             
             <div class="sidebar-title">Core Consensus</div>
@@ -400,6 +401,11 @@
                 <li><a href="#sdk" onclick="switchTab('sdk')">Client Dart SDK</a></li>
                 <li><a href="#apis" onclick="switchTab('apis')">Core Node APIs</a></li>
                 <li><a href="#harvester" onclick="switchTab('harvester')">The Harvester Interface</a></li>
+            </ul>
+
+            <div class="sidebar-title">Cross-Chain Bridge</div>
+            <ul class="sidebar-menu">
+                <li><a href="#bridge" onclick="switchTab('bridge')">Wrapped DUIT ($wDUIT)</a></li>
             </ul>
         </aside>
 
@@ -591,6 +597,26 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
   "tx_id": "0xfaucet9f8e7d6c",
   "amount_duit": 10.0
 }</code></pre>
+
+                <div class="alert" style="background: rgba(244, 63, 94, 0.08); border-color: rgba(244, 63, 94, 0.4); color: #fda4af;">
+                    <div class="alert-title" style="color: var(--accent); font-weight: bold; font-family: var(--font-display); font-size: 14px; margin-bottom: 8px;">⚠️ PERINGATAN KEAMANAN VALIDATOR (RISIKO SLASHING)</div>
+                    <p style="margin-bottom: 10px; line-height: 1.5; font-size: 12.5px;">
+                        <strong>JANGAN PERNAH</strong> menyimpan Kunci Privat Konsensus (Consensus Private Key) Anda langsung di dalam harddisk server VPS dalam bentuk teks biasa (hot wallet). Jika server VPS Anda diretas secara Root, peretas dapat menghapus file database state defender dan melakukan double-signing, yang mengakibatkan <strong>seluruh jaminan 5.000 $DUIT Anda disita/dibakar (slashed) secara permanen</strong> oleh protokol jaringan.
+                    </p>
+                    <p style="line-height: 1.5; font-size: 12.5px;">
+                        <strong>Mitigasi yang Direkomendasikan:</strong> Simpan kunci konsensus Anda di dalam Hardware Wallet terisolasi (seperti <em>Feitian USB Token</em>) atau gunakan <em>Google Cloud KMS HSM</em>.
+                    </p>
+                </div>
+
+                <h2>5. Apakah Duitcard NFC Bisa Digunakan untuk Menandatangani Blok Validator?</h2>
+                <p><strong>Ya, 100% Bisa!</strong> Duitcard dilengkapi chip <em>Secure Element</em> perbankan yang mampu memproses tanda tangan kurva kriptografi secara independen.</p>
+                <p><strong>Alur Setup Duitcard sebagai Validator HSM:</strong></p>
+                <ol style="margin-left: 20px; line-height: 1.6; color: var(--text-muted); font-size: 13.5px; margin-bottom: 15px;">
+                    <li>Hubungkan perangkat pembaca kartu (USB NFC Reader seperti ACR122U atau perangkat smartphone NFC) pada komputer lokal rumah/kantor Anda.</li>
+                    <li>Jalankan skrip <strong>Local Signing Daemon</strong> pada komputer lokal tersebut. Tempelkan kartu Duitcard Anda secara fisik di atas pembaca NFC.</li>
+                    <li>Konfigurasikan node validator VPS Anda agar mengarahkan permintaan tanda tangan blok ke IP Local Signing Daemon Anda melalui terowongan VPN terenkripsi (WireGuard).</li>
+                    <li>Setiap kali node VPS memproses blok baru, ia meminta tanda tangan dari Duitcard melalui pembaca NFC secara aman. Kunci privat konsensus tetap aman di dalam kartu Duitcard, kebal dari peretasan internet!</li>
+                </ol>
             </section>
 
             <!-- Section 6: The Harvester Interface -->
@@ -606,6 +632,94 @@ void executeMerchantPayment(String recipientAddress, double amountInDuit) async 
                 </ul>
             </section>
 
+            <!-- Section 7: Cross-Chain Bridge & wDUIT -->
+            <section id="sec-bridge">
+                <h1>Cross-Chain Bridge & wDUIT</h1>
+                <p>Untuk menghubungkan Thermoledger dengan ekosistem keuangan desentralisasi (DeFi) global seperti PancakeSwap dan Uniswap, kami mendukung mekanisme **Cross-Chain Bridge** dengan meluncurkan token **Wrapped DUIT ($wDUIT)**.</p>
+                
+                <h2>1. Arsitektur Jembatan Dua Arah (Two-Way Bridge)</h2>
+                <p>Jembatan Thermoledger menggunakan model <strong>Lock & Mint / Burn & Release</strong>:</p>
+                <ul>
+                    <li><strong>Merapatkan Likuiditas (Bridging In):</strong> Pengguna mengirim koin native <code>$DUIT</code> ke alamat kontrak Pool Bridge di L1 (<code>0xLP_Pool_vUSD</code>). Bridge Node mendeteksi transaksi ini secara on-chain dan memanggil fungsi <code>mint(address to, uint256 amount)</code> pada kontrak pintar wDUIT di jaringan EVM.</li>
+                    <li><strong>Menarik Likuiditas (Bridging Out):</strong> Pengguna memanggil fungsi <code>burn(uint256 amount)</code> di kontrak wDUIT EVM. Bridge Node mendeteksi peristiwa pembakaran ini secara on-chain dan memicu transfer balik koin native <code>$DUIT</code> dari Pool Bridge L1 ke dompet pengguna.</li>
+                </ul>
+
+                <h2>2. Kontrak Pintar wDUIT Solidity (BEP-20 / ERC-20)</h2>
+                <p>Berikut adalah draf kontrak pintar wDUIT standar industri yang dikonfigurasi untuk operasional jembatan aman:</p>
+                <pre><code>// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract WrappedDUIT {
+    string public constant name = "Wrapped DUIT";
+    string public constant symbol = "wDUIT";
+    uint8 public constant decimals = 8; // Presisi 8 desimal (Joule)
+
+    uint256 private _totalSupply;
+    address public owner;
+    address public bridgeAgent; // Dompet Bridge Node yang diizinkan melakukan mint
+
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    // ... Standard ERC-20 Transfer & Allowances ...
+
+    function mint(address to, uint256 amount) external onlyBridge {
+        _totalSupply += amount;
+        _balances[to] += amount;
+    }
+
+    function burn(uint256 amount) external {
+        _balances[msg.sender] -= amount;
+        _totalSupply -= amount;
+    }
+}</code></pre>
+
+                <h2>3. Skrip Bridge Agent Node (Python)</h2>
+                <p>Bridge Node memantau transaksi masuk di L1 secara berkala dan meneruskannya ke EVM, serta sebaliknya:</p>
+                <pre><code># Simulating Bridge Event Listener
+import requests
+
+def poll_l1_locks():
+    response = requests.get("http://localhost:8000/api/v1/search?query=0xLP_Pool_vUSD")
+    if response.ok:
+        txs = response.json().get("data", {}).get("transactions", [])
+        for tx in txs:
+            if tx["recipient"] == "0xLP_Pool_vUSD":
+                # Trigger minting wDUIT on EVM!
+                trigger_evm_mint(tx["sender"], tx["amount_joules"] / 1e8)</code></pre>
+            </section>
+
+            <!-- Section 8: Glossary -->
+            <section id="sec-glossary">
+                <h1>Glossary</h1>
+                <p>Kumpulan istilah penting, definisi, dan akronim dalam ekosistem blockchain termodinamika Thermoledger.</p>
+                
+                <dl style="margin-top: 20px; line-height: 1.6;">
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Joule (J)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Satuan pecahan terkecil koin di jaringan Thermoledger. Satu koin native $DUIT setara dengan 10^8 Joule (1 DUIT = 100.000.000 Joule).</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">State Energy Proof (SEP)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Mekanisme konsensus berbasis fisika termodinamika. Validitas transaksi dan pembentukan blok ditentukan oleh sirkuit analog yang mencapai tingkat kesetimbangan energi minimum.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Protocol Owned Liquidity (POL)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Skema pengelolaan likuiditas di mana kepemilikan LP Token dikunci secara permanen di dalam kontrak pintar sistem, bukan oleh investor individu secara bebas.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Slashing Defender</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Sistem basis data pertahanan thread-safe yang dipasang di server validator lokal untuk mencegah dan memblokir upaya penandatanganan ganda (double-signing) pada tinggi blok yang sama.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Remote Attestation</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Proses pembuktian kriptografis jarak jauh untuk memverifikasi keaslian modul Secure Element bawaan pabrikan Feitian pada dongle hardware sebelum node disetujui menjadi validator aktif.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Unbonding Period (Masa Tunggu)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Jeda waktu tunggu maksimal 24 jam setelah validator mengajukan permohonan keluar (requestExit) sebelum developer menyetujui pencairan dana jaminan USDT secara manual.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">Wrapped DUIT (wDUIT)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Token representasi patokan $DUIT berstandar BEP-20 (BNB Chain) atau ERC-20 (Ethereum) yang dapat ditransaksikan secara desentralisasi di PancakeSwap atau Uniswap.</dd>
+
+                    <dt style="font-weight: bold; color: var(--secondary); font-size: 15px; margin-top: 15px;">TWAP (Time-Weighted Average Price)</dt>
+                    <dd style="color: var(--text-muted); margin-left: 20px; font-size: 13.5px;">Rata-rata harga tertimbang waktu yang dihitung dari cadangan pool DEX untuk mencegah aksi manipulasi harga kilat (flash loan) oleh pihak jahat.</dd>
+                </dl>
+            </section>
         </main>
 
         <!-- Right Table of Contents (TOC) -->

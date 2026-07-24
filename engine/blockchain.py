@@ -30,15 +30,16 @@ class ThermodynamicBlockchain:
                     "stake_amount_joules": int(val["stake_amount_joules"]),
                     "tier_type": val["tier_type"],
                     "status": val["status"],
-                    "cooldown_until": float(val["cooldown_until"])
+                    "cooldown_until": float(val["cooldown_until"]),
+                    "consensus_pubkey": val.get("consensus_pubkey")
                 })
         else:
             self.validators = [
-                {"name": "Alpha-Node", "address": "0x0a111a", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
-                {"name": "Beta-Node", "address": "0x0bee1b", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
-                {"name": "Gamma-Node", "address": "0x0cee1c", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
-                {"name": "Delta-Node", "address": "0x0dee1d", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
-                {"name": "Epsilon-Node", "address": "0x0eee1e", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0}
+                {"name": "Alpha-Node", "address": "0x0a111a", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0, "consensus_pubkey": "0xpub_alpha"},
+                {"name": "Beta-Node", "address": "0x0bee1b", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0, "consensus_pubkey": "0xpub_beta"},
+                {"name": "Gamma-Node", "address": "0x0cee1c", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0, "consensus_pubkey": "0xpub_gamma"},
+                {"name": "Delta-Node", "address": "0x0dee1d", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0, "consensus_pubkey": "0xpub_delta"},
+                {"name": "Epsilon-Node", "address": "0x0eee1e", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0, "consensus_pubkey": "0xpub_epsilon"}
             ]
             for val in self.validators:
                 save_validator_to_db(val)
@@ -49,7 +50,10 @@ class ThermodynamicBlockchain:
             "0x03a6bc": 10000000000,    # Consumer wallet: 100 DUIT
             "0xDeveloperOps": 50000000000000, # 5% Genesis Allocation: 500,000 DUIT (5 * 10^13 Joules)
             "0xBotHarvester": 5000000000, # Arbitrage bot wallet: 50 DUIT
-            "0x000000000000000000000000000000000000DEAD": 0 # Absolute Heat Sink (Burn Wallet)
+            "0x000000000000000000000000000000000000DEAD": 0, # Absolute Heat Sink (Burn Wallet)
+            "0xLP_Pool_vUSD": 100000000000000, # Pool DUIT-vUSD: 1,000,000 DUIT
+            "0xLP_Pool_vBTC": 50000000000000,  # Pool DUIT-vBTC: 500,000 DUIT
+            "0xLP_Pool_vETH": 50000000000000   # Pool DUIT-vETH: 500,000 DUIT
         }
         for val in self.validators:
             self.accounts[val["address"]] = 0
@@ -86,7 +90,10 @@ class ThermodynamicBlockchain:
             "0x03a6bc": 10000000000,
             "0xDeveloperOps": 50000000000000,
             "0xBotHarvester": 5000000000,
-            "0x000000000000000000000000000000000000DEAD": 0
+            "0x000000000000000000000000000000000000DEAD": 0,
+            "0xLP_Pool_vUSD": 100000000000000,
+            "0xLP_Pool_vBTC": 50000000000000,
+            "0xLP_Pool_vETH": 50000000000000
         }
         for val in self.validators:
             self.accounts[val["address"]] = 0
@@ -310,9 +317,11 @@ class ThermodynamicBlockchain:
         save_block_to_db(block)
         return block
 
-    def register_validator(self, address: str, name: str, stake_amount_joules: int, tier_type: str) -> Dict[str, Any]:
-        """Registers or re-enables a validator by staking a specific amount of DUIT (Joules)"""
+    def register_validator(self, address: str, name: str, stake_amount_joules: int, tier_type: str, consensus_pubkey: str = None) -> Dict[str, Any]:
+        """Registers or re-enables a validator by staking a specific amount of DUIT (Joules) with an optional consensus key"""
         address = address.lower().strip()
+        if consensus_pubkey:
+            consensus_pubkey = consensus_pubkey.strip()
         
         if stake_amount_joules <= 0:
             raise ValueError("Staking amount must be positive.")
@@ -338,7 +347,8 @@ class ThermodynamicBlockchain:
             "stake_amount_joules": stake_amount_joules,
             "tier_type": tier_type,
             "status": "online",
-            "cooldown_until": 0.0
+            "cooldown_until": 0.0,
+            "consensus_pubkey": consensus_pubkey
         }
         save_validator_to_db(val)
         
@@ -352,10 +362,11 @@ class ThermodynamicBlockchain:
                 "stake_amount_joules": int(v["stake_amount_joules"]),
                 "tier_type": v["tier_type"],
                 "status": v["status"],
-                "cooldown_until": float(v["cooldown_until"])
+                "cooldown_until": float(v["cooldown_until"]),
+                "consensus_pubkey": v.get("consensus_pubkey")
             })
             
-        return {"status": "success", "address": address, "name": name, "stake_amount": stake_amount_joules, "tier_type": tier_type}
+        return {"status": "success", "address": address, "name": name, "stake_amount": stake_amount_joules, "tier_type": tier_type, "consensus_pubkey": consensus_pubkey}
 
     def unregister_validator(self, address: str) -> Dict[str, Any]:
         """Unstakes a validator immediately, refunding 100% of stake, and triggers a 24-hour hardware cooldown"""
@@ -382,7 +393,8 @@ class ThermodynamicBlockchain:
             "stake_amount_joules": 0,
             "tier_type": existing["tier_type"],
             "status": "cooldown",
-            "cooldown_until": cooldown_until
+            "cooldown_until": cooldown_until,
+            "consensus_pubkey": existing.get("consensus_pubkey")
         }
         save_validator_to_db(val)
         
@@ -396,10 +408,58 @@ class ThermodynamicBlockchain:
                 "stake_amount_joules": int(v["stake_amount_joules"]),
                 "tier_type": v["tier_type"],
                 "status": v["status"],
-                "cooldown_until": float(v["cooldown_until"])
+                "cooldown_until": float(v["cooldown_until"]),
+                "consensus_pubkey": v.get("consensus_pubkey")
             })
             
         return {"status": "success", "address": address, "refunded_amount": stake_refund, "cooldown_until": cooldown_until}
+
+    def verify_block_signature(self, block_height: int, block_hash: str, signature: str, validator_address: str) -> bool:
+        """
+        Verifies that a block proposed by a validator is signed by their registered consensus key.
+        This represents the consensus engine's verification phase.
+        """
+        validator_address = validator_address.lower().strip()
+        val = next((v for v in self.validators if v["address"] == validator_address), None)
+        if not val:
+            raise ValueError(f"Proposer address {validator_address} is not a registered validator.")
+            
+        registered_pubkey = val.get("consensus_pubkey")
+        if not registered_pubkey:
+            # For backward compatibility with unkeyed validators
+            return True
+            
+        # In a real blockchain, we would run: ecdsa.verify(signature, block_hash, registered_pubkey)
+        # We simulate this by checking if the signature matches the format "sig_<consensus_pubkey>_<block_hash>"
+        expected_sig = f"sig_{registered_pubkey}_{block_hash}"
+        return signature == expected_sig
+
+    def execute_dex_payout(self, pool_address: str, recipient_address: str, amount_joules: int) -> Dict[str, Any]:
+        """Executes a payout from the DEX Liquidity Pool to a user as an L1 transaction"""
+        pool_address = pool_address.strip()
+        recipient_address = recipient_address.strip().lower()
+        
+        if amount_joules <= 0:
+            raise ValueError("Payout amount must be positive.")
+            
+        if self.accounts.get(pool_address, 0) < amount_joules:
+            raise ValueError(f"Insufficient pool balance. Available: {self.accounts.get(pool_address, 0)} J")
+            
+        self.accounts[pool_address] -= amount_joules
+        self.accounts[recipient_address] = self.accounts.get(recipient_address, 0) + amount_joules
+        
+        tx_id = "0xdex_swap_" + thermal_noise.generate_entropy_salt(8)[-8:]
+        tx = {
+            "tx_id": tx_id,
+            "sender": pool_address,
+            "recipient": recipient_address,
+            "amount_joules": amount_joules,
+            "entropy_salt": thermal_noise.generate_entropy_salt(16),
+            "target_energy_state": "0x0000",
+            "timestamp": time.time()
+        }
+        self.l2_pool.append(tx)
+        return {"status": "success", "tx_id": tx_id, "amount_duit": amount_joules / 1e8}
 
     def request_faucet_tokens(self, recipient_address: str) -> Dict[str, Any]:
         """Sends 10 DUIT (10^9 Joules) from treasury 0x01a2b3 to recipient if treasury has enough balance"""

@@ -60,9 +60,19 @@ def init_db():
         stake_amount_joules BIGINT,
         tier_type VARCHAR(10),
         status VARCHAR(20),
-        cooldown_until DOUBLE PRECISION
+        cooldown_until DOUBLE PRECISION,
+        consensus_pubkey VARCHAR(130)
     )
     """)
+    
+    # DB Migration: Check if consensus_pubkey column exists (for backward compatibility), if not add it
+    cursor.execute("""
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name='validators' AND column_name='consensus_pubkey';
+    """)
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE validators ADD COLUMN consensus_pubkey VARCHAR(130);")
     
     conn.commit()
     conn.close()
@@ -211,21 +221,23 @@ def save_validator_to_db(val: Dict[str, Any]):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO validators (address, name, stake_amount_joules, tier_type, status, cooldown_until)
-    VALUES (%s, %s, %s, %s, %s, %s)
+    INSERT INTO validators (address, name, stake_amount_joules, tier_type, status, cooldown_until, consensus_pubkey)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     ON CONFLICT (address) DO UPDATE SET
         name = EXCLUDED.name,
         stake_amount_joules = EXCLUDED.stake_amount_joules,
         tier_type = EXCLUDED.tier_type,
         status = EXCLUDED.status,
-        cooldown_until = EXCLUDED.cooldown_until
+        cooldown_until = EXCLUDED.cooldown_until,
+        consensus_pubkey = EXCLUDED.consensus_pubkey
     """, (
         val["address"],
         val["name"],
         val["stake_amount_joules"],
         val["tier_type"],
         val["status"],
-        val["cooldown_until"]
+        val["cooldown_until"],
+        val.get("consensus_pubkey")
     ))
     conn.commit()
     conn.close()
