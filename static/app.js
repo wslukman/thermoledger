@@ -363,14 +363,30 @@ document.addEventListener("DOMContentLoaded", () => {
             row.style.borderRadius = "8px";
             row.style.border = "1px solid rgba(255, 255, 255, 0.04)";
             
-            const dotColor = val.status === "online" ? "var(--accent)" : "#f43f5e";
-            const dotShadow = val.status === "online" ? "rgba(5, 213, 161, 0.6)" : "rgba(244, 63, 94, 0.6)";
+            let dotColor = "#f43f5e"; // default red
+            let dotShadow = "rgba(244, 63, 94, 0.6)";
+            let statusText = val.status ? val.status.toUpperCase() : "ONLINE";
+            
+            if (val.status === "online") {
+                dotColor = "#10b981"; // green
+                dotShadow = "rgba(16, 185, 129, 0.6)";
+            } else if (val.status === "cooldown") {
+                dotColor = "#eab308"; // yellow/orange
+                dotShadow = "rgba(234, 179, 8, 0.6)";
+                if (val.cooldown_left_sec > 0) {
+                    statusText = `COOLDOWN (${val.cooldown_left_sec}s)`;
+                }
+            } else if (val.status === "frozen") {
+                dotColor = "#f43f5e"; // red
+                dotShadow = "rgba(244, 63, 94, 0.6)";
+            }
             
             row.innerHTML = `
                 <div>
                     <div style="font-weight: bold; font-size: 12px; display: flex; align-items: center; gap: 8px;">
                         <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; box-shadow: 0 0 6px ${dotShadow}; display: inline-block;"></span>
-                        ${val.name}
+                        ${val.name} 
+                        <span style="font-size: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-muted); margin-left: 4px;">${statusText}</span>
                     </div>
                     <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px;">${val.address}</div>
                 </div>
