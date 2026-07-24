@@ -9,20 +9,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Vanilla CSS - Ethereum Docs Aesthetics */
+        /* Vanilla CSS - Clean Ethereum.org Docs Aesthetics */
         :root {
-            --bg-base: #0a0915;
-            --bg-sidebar: #100f24;
-            --bg-card: rgba(22, 20, 48, 0.45);
-            --border-glow: rgba(147, 51, 234, 0.2);
-            --primary: #c084fc;
-            --secondary: #22d3ee;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --bg-base: #ffffff;
+            --bg-sidebar: #f8f9fa;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --primary: #0066cc; /* Clean Ethereum Blue */
+            --secondary: #0052a3;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
             --font-main: 'Inter', sans-serif;
-            --font-display: 'Orbitron', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --shadow-glow: 0 0 25px rgba(192, 132, 252, 0.1);
+            --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         * {
@@ -43,8 +42,8 @@
 
         /* Top Navbar */
         nav {
-            background: var(--bg-sidebar);
-            border-bottom: 1px solid var(--border-glow);
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
             padding: 16px 40px;
             display: flex;
             justify-content: space-between;
@@ -52,16 +51,15 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: var(--shadow-subtle);
         }
 
         .nav-logo {
-            font-family: var(--font-display);
-            font-size: 20px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-family: var(--font-main);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #111827;
             text-decoration: none;
         }
 
@@ -70,16 +68,17 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: color 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+            border: 1px solid var(--border-color);
             padding: 8px 16px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            background: #ffffff;
         }
 
         .nav-links a:hover {
-            color: var(--secondary);
-            border-color: var(--secondary);
+            color: var(--primary);
+            border-color: var(--primary);
+            background: #f3f4f6;
         }
 
         /* Documentation Layout */
@@ -109,7 +108,7 @@
                 padding: 12px 16px !important;
             }
             .nav-logo {
-                font-size: 15px !important;
+                font-size: 14px !important;
             }
             .nav-links {
                 display: none;
@@ -123,10 +122,10 @@
                 top: auto !important;
                 width: 100% !important;
                 height: 60px !important;
-                background: rgba(16, 15, 36, 0.95) !important;
+                background: rgba(255, 255, 255, 0.95) !important;
                 backdrop-filter: blur(12px) !important;
                 border-right: none !important;
-                border-top: 1px solid var(--border-glow) !important;
+                border-top: 1px solid var(--border-color) !important;
                 padding: 0 16px !important;
                 display: flex !important;
                 flex-direction: row !important;
@@ -166,14 +165,15 @@
                 padding: 8px 14px !important;
                 font-size: 12px !important;
                 white-space: nowrap !important;
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                background: #f3f4f6 !important;
+                border: 1px solid var(--border-color) !important;
+                color: var(--text-muted) !important;
             }
             
             .sidebar-menu a.active {
-                background: rgba(34, 211, 238, 0.1) !important;
-                border-color: var(--secondary) !important;
-                color: var(--secondary) !important;
+                background: #e6f0ff !important;
+                border-color: var(--primary) !important;
+                color: var(--primary) !important;
             }
             
             .content {
@@ -184,7 +184,7 @@
         /* Left Sidebar */
         .sidebar {
             background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-glow);
+            border-right: 1px solid var(--border-color);
             padding: 30px 20px;
             position: sticky;
             top: 73px;
@@ -195,8 +195,8 @@
         .sidebar-title {
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            color: #9ca3af;
             margin-bottom: 12px;
             font-weight: 700;
         }
@@ -221,13 +221,13 @@
         }
 
         .sidebar-menu a:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary);
+            background: #e5e7eb;
         }
 
         .sidebar-menu a.active {
             color: var(--primary);
-            background: rgba(192, 132, 252, 0.08);
+            background: #e6f0ff;
             font-weight: 600;
         }
 
@@ -248,20 +248,20 @@
         }
 
         h1 {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #fff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #111827;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 12px;
         }
 
         h2 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             margin-top: 36px;
             margin-bottom: 16px;
-            color: #fff;
+            color: #1f2937;
         }
 
         p {
@@ -272,21 +272,25 @@
         }
 
         strong {
-            color: #fff;
+            color: #111827;
         }
 
         /* Alerts */
         .alert {
-            background: rgba(192, 132, 252, 0.05);
+            background: #f8fafc;
             border-left: 4px solid var(--primary);
             padding: 16px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 6px 6px 0;
             margin: 24px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .alert-title {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 4px;
             color: var(--primary);
             text-transform: uppercase;
@@ -295,17 +299,17 @@
         /* Code Blocks styling */
         code {
             font-family: var(--font-mono);
-            background: rgba(255, 255, 255, 0.06);
+            background: #f3f4f6;
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 13px;
-            color: var(--secondary);
+            color: #0f172a;
         }
 
         pre {
-            background: #05040a;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            background: #0f172a; /* Slate Dark Code block for high code contrast */
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             padding: 20px;
             overflow-x: auto;
             margin: 20px 0;
@@ -314,7 +318,7 @@
         pre code {
             background: transparent;
             padding: 0;
-            color: #e5e7eb;
+            color: #f1f5f9;
             font-size: 13px;
         }
 
@@ -322,16 +326,16 @@
         .toc {
             padding: 30px 20px;
             position: sticky;
-            top: 60px;
-            height: calc(100vh - 60px);
-            border-left: 1px solid var(--border-glow);
+            top: 73px;
+            height: calc(100vh - 73px);
+            border-left: 1px solid var(--border-color);
         }
 
         .toc-title {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--text-muted);
+            color: #9ca3af;
             margin-bottom: 12px;
             font-weight: 700;
         }
@@ -353,7 +357,7 @@
         }
 
         .toc-list a:hover {
-            color: #fff;
+            color: var(--primary);
         }
     </style>
 </head>
