@@ -217,20 +217,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // L1 Blocks Update
-            renderBlocks(data.blocks);
-
-            // Balances Update
-            renderBalances(data.balances);
-
-            // L2 Mempool Update
-            renderMempool(data.l2_pool);
-
-            // Bots Update
-            renderBots(data.bots);
-
-            // Validators Update
-            renderValidators(data.validators);
+        sseSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Update network status
+                try {
+                    updateNetworkStatus(data.safe_mode_active, data.temperature);
+                } catch (e) {
+                    console.error("Error updating network status", e);
+                }
+                
+                // L1 Blocks Update
+                try {
+                    renderBlocks(data.blocks);
+                } catch (e) {
+                    console.error("Error rendering blocks", e);
+                }
+    
+                // Balances Update
+                try {
+                    renderBalances(data.balances);
+                } catch (e) {
+                    console.error("Error rendering balances", e);
+                }
+    
+                // L2 Mempool Update
+                try {
+                    renderMempool(data.l2_pool);
+                } catch (e) {
+                    console.error("Error rendering mempool", e);
+                }
+    
+                // Bots Update
+                try {
+                    renderBots(data.bots);
+                } catch (e) {
+                    console.error("Error rendering bots", e);
+                }
+    
+                // Validators Update
+                try {
+                    renderValidators(data.validators);
+                } catch (e) {
+                    console.error("Error rendering validators", e);
+                }
+            } catch (err) {
+                console.error("Error parsing SSE data", err);
+            }
         };
         
         sseSource.onerror = (err) => {
