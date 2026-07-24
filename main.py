@@ -208,12 +208,29 @@ async def event_stream(request: Request):
             import random
             validators_info = []
             for val in thermo_blockchain.validators:
-                simulated_noise = round(random.uniform(0.96, 1.0), 3) if not consensus_lattice.safe_mode_active else 0.0
+                status = "frozen" if consensus_lattice.safe_mode_active else val["status"]
+                simulated_noise = round(random.uniform(0.96, 1.0), 3) if status == "online" else 0.0
+                
+                cooldown_left = 0
+                if status == "cooldown":
+                    cooldown_left = max(0, int(val["cooldown_until"] - time.time()))
+                    # If cooldown has elapsed, mark it back to inactive
+                    if cooldown_left == 0:
+                        # Auto-promote out of cooldown to inactive
+                        from engine.db import save_validator_to_db
+                        val["status"] = "inactive"
+                        val["cooldown_until"] = 0.0
+                        save_validator_to_db(val)
+                        status = "inactive"
+                
                 validators_info.append({
                     "name": val["name"],
                     "address": val["address"],
-                    "status": "online" if not consensus_lattice.safe_mode_active else "frozen",
+                    "status": status,
                     "noise": simulated_noise,
+                    "cooldown_left_sec": cooldown_left,
+                    "stake_duit": round(val["stake_amount_joules"] / 1e8, 2),
+                    "tier_type": val["tier_type"],
                     "reward_balance": round(thermo_blockchain.accounts.get(val["address"], 0) / 1e8, 4)
                 })
 
@@ -387,6 +404,35 @@ async def read_index(request: Request):
             return HTMLResponse(content=f.read())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Index file not found: {e}")
+
+@app.post("/api/v1/validator/register")
+async def register_validator_api(data: Dict[str, Any]):
+    address = data.get("address")
+    name = data.get("name")
+    stake_amount_duit = data.get("stake_amount_duit")
+    tier_type = data.get("tier_type", "Tipe_A")
+    
+    if not address or not name or not stake_amount_duit:
+        raise HTTPException(status_code=400, detail="Missing required parameters: address, name, stake_amount_duit")
+        
+    try:
+        stake_amount_joules = int(float(stake_amount_duit) * 1e8)
+        res = thermo_blockchain.register_validator(address, name, stake_amount_joules, tier_type)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/v1/validator/unregister")
+async def unregister_validator_api(data: Dict[str, Any]):
+    address = data.get("address")
+    if not address:
+        raise HTTPException(status_code=400, detail="Missing required parameter: address")
+        
+    try:
+        res = thermo_blockchain.unregister_validator(address)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Mount frontend directory
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

@@ -3,7 +3,7 @@ import random
 from typing import List, Dict, Any
 from engine.noise import thermal_noise
 from engine.consensus import consensus_lattice
-from engine.db import init_db, save_block_to_db, load_blocks_from_db
+from engine.db import init_db, save_block_to_db, load_blocks_from_db, load_validators_from_db, save_validator_to_db
 
 class ThermodynamicBlockchain:
     """
@@ -14,13 +14,35 @@ class ThermodynamicBlockchain:
     def __init__(self):
         self.chain: List[Dict[str, Any]] = []
         self.l2_pool: List[Dict[str, Any]] = []
-        self.validators = [
-            {"name": "Alpha-Node", "address": "0x0a111a", "status": "online"},
-            {"name": "Beta-Node", "address": "0x0bee1b", "status": "online"},
-            {"name": "Gamma-Node", "address": "0x0cee1c", "status": "online"},
-            {"name": "Delta-Node", "address": "0x0dee1d", "status": "online"},
-            {"name": "Epsilon-Node", "address": "0x0eee1e", "status": "online"}
-        ]
+        
+        # Initialize database
+        init_db()
+        
+        # Load validators from database or seed defaults
+        db_validators = load_validators_from_db()
+        if db_validators:
+            # PostgreSQL returns keys as standard strings
+            self.validators = []
+            for val in db_validators:
+                self.validators.append({
+                    "name": val["name"],
+                    "address": val["address"],
+                    "stake_amount_joules": int(val["stake_amount_joules"]),
+                    "tier_type": val["tier_type"],
+                    "status": val["status"],
+                    "cooldown_until": float(val["cooldown_until"])
+                })
+        else:
+            self.validators = [
+                {"name": "Alpha-Node", "address": "0x0a111a", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
+                {"name": "Beta-Node", "address": "0x0bee1b", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
+                {"name": "Gamma-Node", "address": "0x0cee1c", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
+                {"name": "Delta-Node", "address": "0x0dee1d", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0},
+                {"name": "Epsilon-Node", "address": "0x0eee1e", "stake_amount_joules": 200000000000, "tier_type": "Tipe_A", "status": "online", "cooldown_until": 0.0}
+            ]
+            for val in self.validators:
+                save_validator_to_db(val)
+
         self.accounts: Dict[str, int] = {
             "0x01a2b3": 1000000000000, # Initial treasury: 10,000 DUIT (10^12 Joules)
             "0x02bf1a": 50000000000,   # Cashier Merchant (DuitLap): 500 DUIT
@@ -37,9 +59,6 @@ class ThermodynamicBlockchain:
             {"id": "EntropyHarvester_B", "efficiency_score": 0.92, "wins": 0, "balance_joules": 1000000000},
             {"id": "LeastActionBot_C", "efficiency_score": 0.97, "wins": 0, "balance_joules": 1000000000}
         ]
-        
-        # Initialize database
-        init_db()
         
         # Restore historical chain or create genesis block
         db_blocks = load_blocks_from_db()
@@ -254,20 +273,26 @@ class ThermodynamicBlockchain:
         block_height = len(self.chain)
         settled_entropy = thermal_noise.generate_entropy_salt(32)
         
-        # Select proposer randomly from virtual validators
-        proposer = random.choice(self.validators)
+        # Select proposer randomly from online validators
+        online_validators = [v for v in self.validators if v["status"] == "online"]
+        if not online_validators:
+            online_validators = [{"address": "0x0a111a", "name": "Alpha-Node"}]
+            
+        proposer = random.choice(online_validators)
         validator_address = proposer["address"]
         
         # Distribute Block Reward dynamically (decays every 4 years)
         block_reward = self.get_current_block_reward(block_height)
         if block_reward > 0:
             proposer_reward = int(block_reward * 0.36)
-            signer_reward = (block_reward - proposer_reward) // 4
-            
-            self.accounts[validator_address] = self.accounts.get(validator_address, 0) + proposer_reward
-            for val in self.validators:
-                if val["address"] != validator_address:
+            active_signers = [v for v in online_validators if v["address"] != validator_address]
+            if active_signers:
+                signer_reward = (block_reward - proposer_reward) // len(active_signers)
+                self.accounts[validator_address] = self.accounts.get(validator_address, 0) + proposer_reward
+                for val in active_signers:
                     self.accounts[val["address"]] = self.accounts.get(val["address"], 0) + signer_reward
+            else:
+                self.accounts[validator_address] = self.accounts.get(validator_address, 0) + block_reward
         
         block = {
             "block_height": block_height,
@@ -284,6 +309,97 @@ class ThermodynamicBlockchain:
         self.chain.append(block)
         save_block_to_db(block)
         return block
+
+    def register_validator(self, address: str, name: str, stake_amount_joules: int, tier_type: str) -> Dict[str, Any]:
+        """Registers or re-enables a validator by staking a specific amount of DUIT (Joules)"""
+        address = address.lower().strip()
+        
+        if stake_amount_joules <= 0:
+            raise ValueError("Staking amount must be positive.")
+            
+        current_bal = self.accounts.get(address, 0)
+        if current_bal < stake_amount_joules:
+            raise ValueError(f"Insufficient balance to stake. Required: {stake_amount_joules} J, Available: {current_bal} J")
+            
+        existing = next((v for v in self.validators if v["address"] == address), None)
+        if existing:
+            if existing["status"] == "online":
+                raise ValueError("This address is already registered as an active online validator.")
+            if existing["status"] == "cooldown" and time.time() < existing["cooldown_until"]:
+                remaining = int(existing["cooldown_until"] - time.time())
+                raise ValueError(f"Dongle is in deactivation cooldown. Please wait {remaining} seconds before re-registering.")
+        
+        # Deduct stake from account balance
+        self.accounts[address] -= stake_amount_joules
+        
+        val = {
+            "address": address,
+            "name": name,
+            "stake_amount_joules": stake_amount_joules,
+            "tier_type": tier_type,
+            "status": "online",
+            "cooldown_until": 0.0
+        }
+        save_validator_to_db(val)
+        
+        # Reload validators list
+        db_validators = load_validators_from_db()
+        self.validators = []
+        for v in db_validators:
+            self.validators.append({
+                "name": v["name"],
+                "address": v["address"],
+                "stake_amount_joules": int(v["stake_amount_joules"]),
+                "tier_type": v["tier_type"],
+                "status": v["status"],
+                "cooldown_until": float(v["cooldown_until"])
+            })
+            
+        return {"status": "success", "address": address, "name": name, "stake_amount": stake_amount_joules, "tier_type": tier_type}
+
+    def unregister_validator(self, address: str) -> Dict[str, Any]:
+        """Unstakes a validator immediately, refunding 100% of stake, and triggers a 24-hour hardware cooldown"""
+        address = address.lower().strip()
+        
+        existing = next((v for v in self.validators if v["address"] == address), None)
+        if not existing:
+            raise ValueError("No validator registered with this address.")
+            
+        if existing["status"] == "cooldown":
+            raise ValueError("Validator is already deactivated and in cooldown.")
+            
+        # Refund 100% of staked amount (Zero Slashing)
+        stake_refund = existing["stake_amount_joules"]
+        self.accounts[address] = self.accounts.get(address, 0) + stake_refund
+        
+        # Put into cooldown for 24 hours
+        cooldown_duration = 86400  # 24 hours in seconds
+        cooldown_until = time.time() + cooldown_duration
+        
+        val = {
+            "address": address,
+            "name": existing["name"],
+            "stake_amount_joules": 0,
+            "tier_type": existing["tier_type"],
+            "status": "cooldown",
+            "cooldown_until": cooldown_until
+        }
+        save_validator_to_db(val)
+        
+        # Reload validators list
+        db_validators = load_validators_from_db()
+        self.validators = []
+        for v in db_validators:
+            self.validators.append({
+                "name": v["name"],
+                "address": v["address"],
+                "stake_amount_joules": int(v["stake_amount_joules"]),
+                "tier_type": v["tier_type"],
+                "status": v["status"],
+                "cooldown_until": float(v["cooldown_until"])
+            })
+            
+        return {"status": "success", "address": address, "refunded_amount": stake_refund, "cooldown_until": cooldown_until}
 
     def request_faucet_tokens(self, recipient_address: str) -> Dict[str, Any]:
         """Sends 10 DUIT (10^9 Joules) from treasury 0x01a2b3 to recipient if treasury has enough balance"""
